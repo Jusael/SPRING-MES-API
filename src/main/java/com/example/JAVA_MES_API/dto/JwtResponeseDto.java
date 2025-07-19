@@ -1,9 +1,11 @@
 package com.example.JAVA_MES_API.dto;
 
-public class FcmResponeseDto {
+public class JwtResponeseDto {
 
 	
 	private boolean success ;
+	private String token;
+	private int expiresInDays;
 	private String message;
 
 		
@@ -13,6 +15,23 @@ public class FcmResponeseDto {
 	
 	public void setSuccess(boolean success) {
 		this.success = success;
+	}
+	
+	public String getToken() {
+		return this.token;
+	}
+	
+	public void setToken(String token) {
+		this.token = token;
+	}
+	
+	public int getExpiresInDays() {
+		return this.expiresInDays;
+	}
+	
+	public void setExpiresInDays(int expiresInDays)
+	{
+		this.expiresInDays = expiresInDays;
 	}
 	
 	public String getMessage()

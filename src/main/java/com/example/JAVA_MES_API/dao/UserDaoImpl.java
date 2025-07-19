@@ -1,6 +1,7 @@
 package com.example.JAVA_MES_API.dao;
 
 import java.io.Console;
+import java.util.Map;
 
 import org.apache.ibatis.session.SqlSession;
 import org.apache.logging.log4j.message.Message;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import com.example.JAVA_MES_API.dto.FcmRequestDto;
 import com.example.JAVA_MES_API.dto.FcmResponeseDto;
+import com.example.JAVA_MES_API.dto.JwtRequestDto;
 import com.example.JAVA_MES_API.dto.LoginRequestDto;
 import com.example.JAVA_MES_API.dto.LoginResponseDto;
 import com.example.JAVA_MES_API.exception.BusinessException;
@@ -32,7 +34,7 @@ public class UserDaoImpl implements UserDao {
 		loginResponseDto = sqlSession.selectOne(NAME_SPACE + "login", loginRequestDto);
 
 		if (loginResponseDto == null)
-				throw new BusinessException("사용자 정보 없음", "USER_NOT MATCH") ;
+				throw new BusinessException("사용자 정보 없음", "USER NOT MATCH") ;
 
 		return loginResponseDto;
 	}
@@ -40,7 +42,27 @@ public class UserDaoImpl implements UserDao {
 	@Override
 	public FcmResponeseDto updateFcmToken(FcmRequestDto fcmRequstDto) {
 		
-		return null;
+		FcmResponeseDto responeseDto = new FcmResponeseDto();
+
+		int result = sqlSession.update(NAME_SPACE + "updateFcm", fcmRequstDto);
+
+		if(result < 0)
+			throw new BusinessException("FCM 업데이트 실패", "FCM UPDATE ERROR");
+		
+		responeseDto.setSuccess(true);
+		responeseDto.setMessage("FCM 토큰 업데이트 완료");
+		
+		return responeseDto;
 	}
 
+	@Override
+	public Map<String, Object> searchUserInfo(JwtRequestDto jwtRequestDto){
+		
+		Map<String, Object> resultMap = sqlSession.selectOne(NAME_SPACE+ "getUserInfo", jwtRequestDto);
+		
+		if(resultMap == null)
+			throw new BusinessException("사용자 조회 실패", "NOT FIND USER INFO");
+		
+		return resultMap;
+	}
 }

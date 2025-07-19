@@ -6,6 +6,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.JAVA_MES_API.dto.FcmRequestDto;
+import com.example.JAVA_MES_API.dto.FcmResponeseDto;
 import com.example.JAVA_MES_API.dto.LoginRequestDto;
 import com.example.JAVA_MES_API.dto.LoginResponseDto;
 import com.example.JAVA_MES_API.service.UserService;
@@ -26,10 +28,22 @@ public class LoginController {
 	public ResponseEntity<LoginResponseDto> login (@RequestBody LoginRequestDto loginRequestDto) {
 		
 		LoginResponseDto loginResponse = new LoginResponseDto();
+		
 		loginResponse =  userService.searchUserInfo(loginRequestDto);
+		
 		System.out.println("loginResponse: " + loginResponse);
+		
 		return ResponseEntity.ok(loginResponse);
 	}
 	
+	@PostMapping("/postfcm")
+	public ResponseEntity<FcmResponeseDto> updateFcmToken(@RequestBody FcmRequestDto fcmRequestDto) {
+		
+		FcmResponeseDto responese = new FcmResponeseDto();
+		
+		responese = userService.updateFcmToken(fcmRequestDto);
+		
+		return ResponseEntity.ok(responese) ;
+	}
 	
 }

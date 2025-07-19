@@ -3,6 +3,16 @@
 "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="userMapper">
 
+    <select id="getUserInfo" resultType="map">
+       SELECT	USER_NAME 
+			,	LEVEL  
+			,	EMPLOYEE_CD 
+			,	START_DATE 
+			,	END_DATE 
+  		 FROM USER_INFO
+ 		WHERE USER_ID		= #{userId}      
+    </select>
+    
     <select id="login" 
     parameterType="com.example.JAVA_MES_API.dto.LoginRequestDto"
     resultType="com.example.JAVA_MES_API.dto.LoginResponseDto">
@@ -10,7 +20,12 @@
   		 FROM USER_INFO
  		WHERE USER_ID		= #{userId}
           AND USER_PASSWORD	= #{passWord}
-   		  AND NOW()			BETWEEN START_DATE AND END_DATE
-      
+   		  AND NOW()			BETWEEN START_DATE AND END_DATE      
     </select>
+    
+    <update id="updateFcm" parameterType="com.example.JAVA_MES_API.dto.FcmRequestDto">
+    	UPDATE USER_INFO
+    	SET FCM_TOKEN = #{fcmToken}
+    	WHERE USER_ID = #{userId}
+	</update>
 </mapper>
