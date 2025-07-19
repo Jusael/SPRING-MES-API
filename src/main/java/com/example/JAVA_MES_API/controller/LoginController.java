@@ -8,13 +8,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.JAVA_MES_API.dto.FcmRequestDto;
 import com.example.JAVA_MES_API.dto.FcmResponeseDto;
+import com.example.JAVA_MES_API.dto.JwtRequestDto;
+import com.example.JAVA_MES_API.dto.JwtResponeseDto;
 import com.example.JAVA_MES_API.dto.LoginRequestDto;
 import com.example.JAVA_MES_API.dto.LoginResponseDto;
 import com.example.JAVA_MES_API.service.UserService;
 
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/login")
 public class LoginController {
 
 	private UserService userService;
@@ -46,4 +48,13 @@ public class LoginController {
 		return ResponseEntity.ok(responese) ;
 	}
 	
+	@PostMapping("postjwt")
+	public ResponseEntity<JwtResponeseDto> updateJwtToken(@RequestBody JwtRequestDto jwtRequestDto) {
+		
+		JwtResponeseDto responese = new JwtResponeseDto();
+		
+		responese = userService.updateJwtToken(jwtRequestDto);
+		
+		return ResponseEntity.ok(responese) ;
+	}
 }

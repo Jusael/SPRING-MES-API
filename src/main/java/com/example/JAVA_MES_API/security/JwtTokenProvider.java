@@ -8,21 +8,16 @@ import java.security.Key;
 import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
+
+@Component
 public class JwtTokenProvider {
-	
-	private static String SECRET_KEY;
 
     @Value("${jwt.secret}")
-    public void setSecretKey(String secretKey) {
-        JwtTokenProvider.SECRET_KEY = secretKey;
-    }
+    private String SECRET_KEY;
 
-    public static String getSecretKey() {
-        return SECRET_KEY;
-    }
-
-    public static String generateToken(String userId, long expireDays) {
+    public  String generateToken(String userId, long expireDays) {
         Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 
         Date now = new Date();

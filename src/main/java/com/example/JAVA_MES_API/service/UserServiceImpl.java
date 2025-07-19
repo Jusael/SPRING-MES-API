@@ -27,11 +27,15 @@ public class UserServiceImpl implements UserService {
 
 	private UserDao userDao;
 	private UserRepository userRepository;
-
+	private JwtTokenProvider jwtTokenProvider;
+	
 	@Autowired
-	public UserServiceImpl(UserDao loginDao, UserRepository userRepository) {
+	public UserServiceImpl(UserDao loginDao
+			, UserRepository userRepository
+			, JwtTokenProvider jwtTokenProvider) {
 		this.userRepository = userRepository;
 		this.userDao = loginDao;
+		this.jwtTokenProvider = jwtTokenProvider;
 	}
 
 	@Override
@@ -67,6 +71,16 @@ public class UserServiceImpl implements UserService {
 	@Transactional(rollbackFor = Exception.class)
 	public JwtResponeseDto updateJwtToken(JwtRequestDto jwtRequestDto) {
 
+		//NOTE : JPA(ORM) 기능 파악 
+		//JPA는 엔터티, 레파지토리로 구분된다.
+		// 엔터티는 테이블 엔터티를 의미한다.
+		// 레파지토리는 JPA 기능을 인터페이스 한다.
+		//JPA는 기본적 코드로 sql을 대체하지만, 특정 DML 경우 Modify로 재정의 하여사용한다.
+		//SELECT : FIND BY ID + 컬럼이름
+		//INSERT, UPDATE : SAVE 
+		//DELETE : deleteById
+		
+		//영속성에 포함된 엔터티를 SET할경우 dirty update가 가능하여 save는 패스 가능하다.
 		JwtResponeseDto respons = new JwtResponeseDto();
 		Map<String, Object> mapUserInfo = userDao.searchUserInfo(jwtRequestDto);
 
@@ -84,7 +98,7 @@ public class UserServiceImpl implements UserService {
 			return respons;
 		}
 
-		String jwtTokenString = JwtTokenProvider.generateToken(jwtRequestDto.getUserId(), dayDiff);
+		String jwtTokenString = jwtTokenProvider.generateToken(jwtRequestDto.getUserId(), dayDiff);
 
 		User user = userRepository.findById(jwtRequestDto.getUserId())
 				 .orElseThrow(() -> new IllegalArgumentException("User not found"));
