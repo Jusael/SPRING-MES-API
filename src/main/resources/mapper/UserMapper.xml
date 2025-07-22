@@ -14,8 +14,8 @@
     </select>
     
     <select id="login" 
-    parameterType="com.example.JAVA_MES_API.dto.LoginRequestDto"
-    resultType="com.example.JAVA_MES_API.dto.LoginResponseDto">
+    parameterType="com.example.JAVA_MES_API.api.dto.LoginRequestDto"
+    resultType="com.example.JAVA_MES_API.api.dto.LoginResponseDto">
        SELECT LEVEL
   		 FROM USER_INFO
  		WHERE USER_ID		= #{userId}
@@ -23,7 +23,7 @@
    		  AND NOW()			BETWEEN START_DATE AND END_DATE      
     </select>
     
-    <update id="updateFcm" parameterType="com.example.JAVA_MES_API.dto.FcmRequestDto">
+    <update id="updateFcm" parameterType="com.example.JAVA_MES_API.api.dto.FcmRequestDto">
     	UPDATE USER_INFO
     	SET FCM_TOKEN = #{fcmToken}
     	WHERE USER_ID = #{userId}
