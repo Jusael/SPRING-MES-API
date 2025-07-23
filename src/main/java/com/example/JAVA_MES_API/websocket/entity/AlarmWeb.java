@@ -7,14 +7,15 @@ import jakarta.persistence.Table;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Builder
 @Entity
 @Table(name = "PUSH_NOTIFICATION")
 @Getter
 @Setter
-
-public class Alarm {
+@ToString
+public class AlarmWeb {
 
 	@Id
     @Column(nullable = false, unique = true)

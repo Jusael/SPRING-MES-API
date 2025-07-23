@@ -19,7 +19,7 @@ public class WebsocketController {
 	}
 	
 	@MessageMapping("/send")
-	@SendTo("topic/alarms")
+	@SendTo("/sub/chat")
 	public void broadcase(MessageDto messageDto)
 	{
 		webSocketService.saveAlarm(messageDto);

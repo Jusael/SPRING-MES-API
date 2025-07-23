@@ -4,10 +4,12 @@ import com.example.JAVA_MES_API.api.entity.Alarm;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
 @AllArgsConstructor
+@ToString
 public class MessageDto {
 	private int mesAlarmId;
 	private String userId;

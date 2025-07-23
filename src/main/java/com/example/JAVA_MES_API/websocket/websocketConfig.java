@@ -8,12 +8,23 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import com.example.JAVA_MES_API.api.security.JwtTokenProvider;
+import com.example.JAVA_MES_API.websocket.jwt.JwtHandshakeInterceptor;
+import com.example.JAVA_MES_API.websocket.jwt.WebJwtTokenProvider;
+
 
 
 @Configuration
 @EnableWebSocketMessageBroker
 public class websocketConfig implements WebSocketMessageBrokerConfigurer {
 
+	private WebJwtTokenProvider webJwtTokenProvider;
+	
+	public websocketConfig(WebJwtTokenProvider webJwtTokenProvider)
+	{
+		this.webJwtTokenProvider = webJwtTokenProvider;
+	}
+	
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry config) {
 		config.enableSimpleBroker("/topic"); // 브로커용 (구독 채널) /topic/alarms 채널 이름으로 브로커 큐에 들어가고, 구독자에게 전달.
@@ -24,6 +35,7 @@ public class websocketConfig implements WebSocketMessageBrokerConfigurer {
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
 		registry.addEndpoint("/ws") // url 접두사 
 		.setAllowedOriginPatterns("*")
+		.addInterceptors(new JwtHandshakeInterceptor(webJwtTokenProvider))
 		.withSockJS();
 	}
 	

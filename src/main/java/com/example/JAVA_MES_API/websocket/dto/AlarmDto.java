@@ -1,16 +1,18 @@
 package com.example.JAVA_MES_API.websocket.dto;
 
-import com.example.JAVA_MES_API.websocket.entity.Alarm;
+import com.example.JAVA_MES_API.websocket.entity.AlarmWeb;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
+@ToString
 public class AlarmDto {
 	private int mesAlarmId;
 	private String userId;
@@ -41,8 +43,8 @@ public class AlarmDto {
 
 	}
 	
-	public Alarm toEntity() {
-	    return Alarm.builder()
+	public AlarmWeb toEntity() {
+	    return AlarmWeb.builder()
 	            .mesAlarmId(this.mesAlarmId)
 	            .userId(this.userId)
 	            .userNm(this.userNm)
