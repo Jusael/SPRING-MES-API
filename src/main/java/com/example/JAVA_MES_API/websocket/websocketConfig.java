@@ -9,8 +9,8 @@ import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
 import com.example.JAVA_MES_API.api.security.JwtTokenProvider;
-import com.example.JAVA_MES_API.websocket.jwt.JwtHandshakeInterceptor;
-import com.example.JAVA_MES_API.websocket.jwt.WebJwtTokenProvider;
+import com.example.JAVA_MES_API.websocket.jwtToken.JwtHandshakeInterceptor;
+import com.example.JAVA_MES_API.websocket.jwtToken.WebJwtTokenProvider;
 
 
 
@@ -28,7 +28,7 @@ public class websocketConfig implements WebSocketMessageBrokerConfigurer {
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry config) {
 		config.enableSimpleBroker("/topic"); // 브로커용 (구독 채널) /topic/alarms 채널 이름으로 브로커 큐에 들어가고, 구독자에게 전달.
-		config.setApplicationDestinationPrefixes(".app"); //송신자의 접두사 EX stompClient.send("/app/send", {}, JSON.stringify({...}));
+		config.setApplicationDestinationPrefixes("/app"); //송신자의 접두사 EX stompClient.send("/app/send", {}, JSON.stringify({...}));
 	}
 	
 	@Override

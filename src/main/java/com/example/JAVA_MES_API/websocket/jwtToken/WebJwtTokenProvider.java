@@ -1,4 +1,4 @@
-package com.example.JAVA_MES_API.websocket.jwt;
+package com.example.JAVA_MES_API.websocket.jwtToken;
 
 import java.security.Key;
 import java.security.PublicKey;

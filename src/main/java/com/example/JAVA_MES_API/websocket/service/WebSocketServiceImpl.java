@@ -1,13 +1,18 @@
 package com.example.JAVA_MES_API.websocket.service;
 
+import org.hibernate.annotations.Comment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.JAVA_MES_API.websocket.repository.AlarmRepository;
 import com.example.JAVA_MES_API.websocket.dto.AlarmDto;
 import com.example.JAVA_MES_API.websocket.dto.MessageDto;
 import com.example.JAVA_MES_API.websocket.entity.AlarmWeb;
+import com.example.JAVA_MES_API.websocket.entity.FcmSavedEvent;
+
 
 @Service
 public class WebSocketServiceImpl implements WebSocketService {
@@ -16,25 +21,28 @@ public class WebSocketServiceImpl implements WebSocketService {
 	
 	
 	private AlarmRepository alarmRepository;
+    private ApplicationEventPublisher applicationEventPublisher;
 	
-	public WebSocketServiceImpl (AlarmRepository alarmRepository)
+	public WebSocketServiceImpl (AlarmRepository alarmRepository,  ApplicationEventPublisher applicationEventPublisher)
 	{
 		this.alarmRepository = alarmRepository;
+		this.applicationEventPublisher = applicationEventPublisher;
 	}
 
+	@Transactional(rollbackFor = Exception.class)
 	public void saveAlarm(MessageDto messageDto) {
 		
 		AlarmDto alarmDto = AlarmDto.fromMessageDto(messageDto);
 		
-		AlarmWeb alarm  = alarmDto.toEntity();
+		AlarmWeb alarm  = alarmRepository.save(alarmDto.toEntity()); 
 		
-		alarmRepository.save(alarm);
-		
-		log.info(String.format("웹 소켓 수신 : {}", alarm));
-		
+		applicationEventPublisher.publishEvent(new FcmSavedEvent(alarm));
 	}
+	
 
 	public void sendFcmNotification(AlarmDto alarmDto) {
 		log.info("sendFcmNotification");
 	}
 }
+
+
