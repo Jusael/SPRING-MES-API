@@ -9,4 +9,6 @@ public interface AlarmService {
 	
 	List<AlarmsResponseDto> searchUnActionAlarm(AlarmsRequestDto alarmsRequestDto);
 	
+	
+	void readOrDeleteAarm(AlarmsRequestDto alarmsRequestDto);
 }

@@ -22,7 +22,7 @@ import com.example.JAVA_MES_API.api.service.UserService;
 @RequestMapping("/api/login")
 public class LoginController {
 	
-	private static final Logger log = LoggerFactory.getLogger(UserDaoImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(LoginController.class);
 	
 	private UserService userService;
 	

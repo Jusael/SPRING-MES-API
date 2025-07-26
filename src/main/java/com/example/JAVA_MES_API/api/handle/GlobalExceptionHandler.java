@@ -1,4 +1,4 @@
-package com.example.JAVA_MES_API.api.exception;
+package com.example.JAVA_MES_API.api.handle;
 
 import java.sql.SQLException;
 

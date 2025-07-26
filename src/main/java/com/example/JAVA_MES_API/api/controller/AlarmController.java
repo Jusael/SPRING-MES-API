@@ -19,7 +19,7 @@ import com.example.JAVA_MES_API.api.service.AlarmService;
 @RequestMapping("api/alarm")
 public class AlarmController {
 
-	private static final Logger log = LoggerFactory.getLogger(UserDaoImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(AlarmController.class);
 
 	AlarmService alarmService;
 
@@ -46,4 +46,9 @@ public class AlarmController {
 		return ResponseEntity.ok(list);
 	}
 
+	@GetMapping("/post-alarm-status-controll")
+	public void readOrDeleteAarm(AlarmsRequestDto alarmsRequestDto)
+	{
+		alarmService.readOrDeleteAarm(alarmsRequestDto);		
+	}
 }

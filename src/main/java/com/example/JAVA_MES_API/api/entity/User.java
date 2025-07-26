@@ -14,18 +14,36 @@ import lombok.Setter;
 @Getter
 @Setter
 public class User {
-	@Id
-    @Column(nullable = false, unique = true)
+
+    @Id
+    @Column(name = "USER_ID", length = 50, nullable = false, unique = true)
     private String userId;
 
-    @Column(nullable = true)
+    @Column(name = "USER_NAME", length = 50)
+    private String userName;
+
+    @Column(name = "USER_PASSWORD", length = 50)
     private String userPassword;
 
-    @Column(nullable = true)
+    @Column(name = "LEVEL")
+    private Integer level;
+
+    @Column(name = "EMPLOYEE_CD", length = 50)
+    private String employeeCd;
+
+    @Column(name = "START_DATE", length = 10)
+    private String startDate; // YYYY-MM-DD
+
+    @Column(name = "END_DATE", length = 10)
+    private String endDate;   // YYYY-MM-DD
+
+    @Column(name = "JWT_TOKEN", length = 500)
     private String jwtToken;
 
-    @Column(nullable = true)
-    private String startDate; // YYYY-MM-DD
-    @Column(nullable = true)
-    private String endDate;   // YYYY-MM-DD
+    @Column(name = "FCM_TOKEN", length = 500)
+    private String fcmToken;
+
+    @Lob
+    @Column(name = "SIGN_IMAGE")
+    private byte[] signImage;
 }
