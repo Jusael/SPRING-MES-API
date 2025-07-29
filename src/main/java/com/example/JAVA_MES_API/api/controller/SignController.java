@@ -6,10 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.JAVA_MES_API.api.dao.UserDaoImpl;
+import com.example.JAVA_MES_API.api.dto.PermissionResponseDto;
 import com.example.JAVA_MES_API.api.dto.SignRequestDto;
 import com.example.JAVA_MES_API.api.dto.SignResponseDto;
 import com.example.JAVA_MES_API.api.service.SignService;
@@ -34,14 +36,19 @@ public class SignController {
 	}
 	
 	@GetMapping("get-user-sign-info")
-	public SignResponseDto searchSignRoleInfo(SignRequestDto signRequestDto)
+	public PermissionResponseDto searchSignRoleInfo(SignRequestDto signRequestDto)
 	{
+		log.info(signRequestDto.getAppAlarmId());
+		log.info(signRequestDto.getSignId());
+		log.info(signRequestDto.getUserId());
+		log.info(signRequestDto.getSignCd());
+		
 		return signService.searchSignRoleInfo(signRequestDto);
 	}
 	
-	@PostMapping("/post-signing")
-	public SignResponseDto updateSignResult(SignRequestDto signRequestDto)
+	@PostMapping("/signIng")
+	public SignResponseDto updateSignResult(@RequestBody SignRequestDto signRequestDto)
 	{
-		return null;
+		return signService.updateSignResult(signRequestDto);
 	}
 }

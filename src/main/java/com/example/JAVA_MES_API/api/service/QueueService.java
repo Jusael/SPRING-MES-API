@@ -30,7 +30,7 @@ import jakarta.persistence.PersistenceContext;
 public class QueueService {
 
 	private static final Logger log = LoggerFactory.getLogger(QueueService.class);
-	
+
 	private enum Status {
 		Ready, Fail, Success, ReTrySuccess,
 	}
@@ -40,12 +40,16 @@ public class QueueService {
 	private final SpExecutionQueueRepository spExecutionQueueRepository;
 	private final SpMappingRepository spMappingRepository;
 	private final ApplicationEventPublisher applicationEventPublisher;
+	private final QueueStatusService queueStatusService;
+	
 
 	public QueueService(SpExecutionQueueRepository spExecutionQueueRepository, SpMappingRepository spMappingRepository,
-			ApplicationEventPublisher applicationEventPublisher) {
+			ApplicationEventPublisher applicationEventPublisher
+			,QueueStatusService queueStatusService) {
 		this.spExecutionQueueRepository = spExecutionQueueRepository;
 		this.spMappingRepository = spMappingRepository;
 		this.applicationEventPublisher = applicationEventPublisher;
+		this.queueStatusService = queueStatusService;
 	}
 
 	//
@@ -55,12 +59,8 @@ public class QueueService {
 		long queId = this.insertSpExecutionQueue(dto);
 
 		// 2. SP 실행 비동기 이벤트 처리
-		TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
-			@Override
-			public void afterCommit() {
-				applicationEventPublisher.publishEvent(new SpExecutionEvent(dto, queId));
-			}
-		});
+		applicationEventPublisher.publishEvent(new SpExecutionEvent(dto, queId));
+
 	}
 
 	private long insertSpExecutionQueue(Object paramDto) {
@@ -87,6 +87,7 @@ public class QueueService {
 
 			parameter.put(spMapping.getSpCd().equals("WORK_ORDER") ? "ORDER_NO" : "PACKING_ORDER_NO",
 					signRequestDto.getKey1());
+			
 		}
 
 		// buildParameter
@@ -107,15 +108,15 @@ public class QueueService {
 	// 4. SP를 실행한다.
 	// 5. 성공유무를 저장한다.
 	// 6. 3번까지 재실행 이후 더이상 진행하지않는다.
-	@Transactional // 해당 어노트뷰는 SP가 아닌 Que의 트랜잭션만 유지한다.
+	@Transactional
 	public void callSP(SpExecutionEvent spExecutionEvent) {
 
 		SpExecutionQueue spExecutionQueue = spExecutionQueueRepository.findById(spExecutionEvent.getQueId())
 				.orElseThrow(() -> new IllegalArgumentException("Not found QueInfo"));
-		
+
 		if (!spExecutionQueue.getStatus().equals(Status.Success.toString()) && spExecutionQueue.getCnt() <= 3) {
 			try {
-				String excuteStr = "CALL" + " " + spExecutionQueue.getSpSchema() + "." + spExecutionQueue.getSpName()
+				String excuteStr = "CALL" + " "  + spExecutionQueue.getSpName()
 						+ "(" + spExecutionQueue.getExecParams() + ")";
 
 				entityManager.createNativeQuery(excuteStr).executeUpdate();
@@ -126,34 +127,38 @@ public class QueueService {
 				spExecutionQueue.setStatus("FAIL");
 				spExecutionQueue.setErrorMsg(e.getMessage());
 				spExecutionQueue.setCnt(spExecutionQueue.getCnt() + 1);
-				spExecutionQueueRepository.save(spExecutionQueue);
 				
-				log.error(e.getMessage());
+				
+				log.error("TX ACTIVE: " + TransactionSynchronizationManager.isActualTransactionActive());
+				log.error(String.format("재시도 : %s / %s", spExecutionQueue.getCnt().toString(), e.getMessage()));
+				
+				throw e;
+			}
+			finally {
+				queueStatusService.UpdateQueStatus(spExecutionQueue);
 			}
 		}
 	}
 
 	public String buildParameter(Map<String, Object> mapParameter) {
-	    if (mapParameter == null || mapParameter.isEmpty()) {
-	        return "";
-	    }
+		if (mapParameter == null || mapParameter.isEmpty()) {
+			return "";
+		}
 
-	    DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+		DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
-	    return mapParameter.values().stream()
-	            .map(value -> {
-	                if (value == null) {
-	                    return "NULL";
-	                } else if (value instanceof String) {
-	                    return "'" + value + "'";
-	                } else if (value instanceof LocalDateTime) {
-	                    return "'" + ((LocalDateTime) value).format(dateFormatter) + "'";
-	                } else if (value instanceof Number) {
-	                    return value.toString();
-	                } else {
-	                    return "'" + value.toString() + "'";
-	                }
-	            })
-	            .collect(Collectors.joining(", "));
+		return mapParameter.values().stream().map(value -> {
+			if (value == null) {
+				return "NULL";
+			} else if (value instanceof String) {
+				return "'" + value + "'";
+			} else if (value instanceof LocalDateTime) {
+				return "'" + ((LocalDateTime) value).format(dateFormatter) + "'";
+			} else if (value instanceof Number) {
+				return value.toString();
+			} else {
+				return "'" + value.toString() + "'";
+			}
+		}).collect(Collectors.joining(", "));
 	}
 }

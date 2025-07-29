@@ -5,7 +5,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "sign_record")
+@Table(name = "SIGN_RECORD")
 @Getter
 @Setter
 @NoArgsConstructor

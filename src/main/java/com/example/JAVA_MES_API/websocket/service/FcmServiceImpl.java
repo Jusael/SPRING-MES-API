@@ -2,7 +2,7 @@ package com.example.JAVA_MES_API.websocket.service;
 
 import com.example.JAVA_MES_API.websocket.dto.FcmPropertiesDto;
 import com.example.JAVA_MES_API.websocket.entity.AlarmWeb;
-import com.example.JAVA_MES_API.websocket.entity.FcmPushUserInfo;
+import com.example.JAVA_MES_API.api.entity.User;
 import com.example.JAVA_MES_API.websocket.repository.FcmPushRepository;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.gson.Gson;
@@ -37,7 +37,7 @@ public class FcmServiceImpl implements FcmService {
         try {
             String userId = alarm.getUserId();
 
-            FcmPushUserInfo userInfo = fcmPushRepository.findById(userId)
+            User userInfo = fcmPushRepository.findById(userId)
                     .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
             String fcmToken = userInfo.getFcmToken();

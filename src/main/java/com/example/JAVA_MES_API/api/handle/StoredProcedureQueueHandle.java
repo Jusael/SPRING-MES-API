@@ -10,9 +10,7 @@ import org.springframework.retry.annotation.Retryable;
 import com.example.JAVA_MES_API.api.dto.SignRequestDto;
 import com.example.JAVA_MES_API.api.dto.SpExecutionEvent;
 import com.example.JAVA_MES_API.api.dto.SpMappingDto;
-import com.example.JAVA_MES_API.manager.StoredProcedureQueueManager;
-import com.example.JAVA_MES_API.websocket.entity.FcmSavedEvent;
-import com.example.JAVA_MES_API.websocket.service.FcmService;
+import com.example.JAVA_MES_API.api.service.QueueService;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 
@@ -23,17 +21,18 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StoredProcedureQueueHandle {
 
-	private final StoredProcedureQueueManager storedProcedureQueueManager;
+	private final QueueService queueService;
 	
 	@Async
 	@EventListener
 	@Retryable(
 		    value = Exception.class,
 		    maxAttempts = 3,
-		    backoff = @Backoff(delay = 300000) // 5분
+		    //backoff = @Backoff(delay = 300000) // 5분
+		    backoff = @Backoff(delay = 200) // 5분
 		)
 	public void eventCallsp(SpExecutionEvent SpExecutionEvent)
 	{
-		storedProcedureQueueManager.callSP(SpExecutionEvent);
+		queueService.callSP(SpExecutionEvent);
 	}
 }

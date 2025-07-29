@@ -8,7 +8,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "sp_execution_queue")
+@Table(name = "SP_EXECUTION_QUEUE")
 @Getter
 @Setter
 @NoArgsConstructor
