@@ -6,7 +6,7 @@
     <select id="signSearchInfo" 
     parameterType="com.example.JAVA_MES_API.api.dto.SignRequestDto"
     resultType="com.example.JAVA_MES_API.api.dto.SignResponseDto">
- SELECT	A.SIGN_DETAIL_NM			AS signDetailNm
+ SELECT	A.SIGN_DETAIL_NM		AS signDetailNm
 	,	B.USER_NAME					AS signDetailUserNm
 	,	A.SIGN_DETAIL_USER_ID 		AS signDetailUserId
 	,	A.SIGN_EMP_CD				AS signEmpCd
@@ -16,10 +16,11 @@
   FROM	SIGN_RECORD	A
 					INNER JOIN USER_INFO	B
 					ON B.USER_ID			= A.SIGN_DETAIL_USER_ID
-					LEFT JOIN USER_INFO	C
-					ON B.USER_ID			= A.SIGN_EMP_CD
- WHERE	SIGN_ID = @SIGN_ID 
-   AND	SIGN_CD = @SIGN_CD     
+                    LEFT JOIN USER_INFO		C
+					ON C.USER_ID			= A.SIGN_EMP_CD
+ WHERE	SIGN_ID = #{signId} 
+   AND	SIGN_CD = #{signCd}  
+    
     </select>
     
 </mapper>

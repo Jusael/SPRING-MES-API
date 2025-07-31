@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="receiptMapper">
+
+	 <select id="ItemSearchInfo" 
+    parameterType="com.example.JAVA_MES_API.api.dto.BarcodeRequestDto"
+    resultType="com.example.JAVA_MES_API.api.dto.ItemResponeseDto">
+    
+SELECT	C.ITEM_NM					AS  itemNm
+	,	C.ITEM_CD					AS	itemCd
+	,	B.RECEIPT_LOT_NO			AS	receiptLotNo
+	,	B.RECEIPT_VALID_DATE		AS	receiptValidDate
+	,	A.RECEIPT_PACK_QTY			AS	receiptPackQty
+	,	A.RECEIPT_PACK_REMAIN_QTY	AS	receiptPackRemainQty
+	,	CASE WHEN  B.RECEIPT_STATUS	= 'RECEIPT' THEN '입고'
+			 WHEN  B.RECEIPT_STATUS = 'TEST_REQUEST' THEN '시험중'
+			 END   					AS receiptStatus	
+  FROM	RECEIPT_PACK				A
+									INNER JOIN RECEIPT		B
+									ON	B.RECEIPT_NO		= A.RECEIPT_NO
+									AND B.RECEIPT_SEQ		= A.RECEIPT_SEQ
+									INNER JOIN MATERIAL_INFO C
+									ON C.ITEM_CD			= B.ITEM_CD
+ WHERE	RECEIPT_PACK_BARCODE_NO = #{receiptPackBarcodeNo} 
+    
+    
+    </select>
+    
+     <select id="InventorySearchInfo" 
+    parameterType="com.example.JAVA_MES_API.api.dto.BarcodeRequestDto"
+    resultType="com.example.JAVA_MES_API.api.dto.InventoryResponeseDto.java">
+    
+ SELECT	C.ITEM_NM					AS	itemNm		
+	,	C.ITEM_CD					AS	itemCd
+	,	B.RECEIPT_LOT_NO			AS	receiptLLotNo
+	,	a.RECEIPT_PACK_BARCODE_NO	AS	receiptPackBarcodeNo
+	,	A.RECEIPT_PACK_QTY			AS	receiptPackQty
+	,	A.RECEIPT_PACK_REMAIN_QTY	AS	receiptPackRemainQty
+  FROM	RECEIPT_PACK			A
+								INNER JOIN RECEIPT		B
+								ON	B.RECEIPT_NO		= A.RECEIPT_NO
+								AND B.RECEIPT_SEQ		= A.RECEIPT_SEQ
+								INNER JOIN MATERIAL_INFO C
+								ON C.ITEM_CD			= B.ITEM_CD
+ WHERE	CELL_CD = #{cellCd}
+    </select>
+    
+    
+</mapper>

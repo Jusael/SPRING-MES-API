@@ -7,7 +7,7 @@ import lombok.Setter;
 @Setter
 public class AlarmsRequestDto {
 
-	private String UserId;
-	private String AppAlarmId;
-	private String AlarmStatus;
+	private String userId;
+	private String appAlarmId;
+	private String alarmStatus;
 }
