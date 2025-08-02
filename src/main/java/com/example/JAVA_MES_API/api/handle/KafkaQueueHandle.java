@@ -1,5 +1,6 @@
 package com.example.JAVA_MES_API.api.handle;
 
+
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -7,10 +8,13 @@ import org.springframework.transaction.event.TransactionalEventListener;
 import org.springframework.context.event.EventListener;
 import org.springframework.retry.annotation.Retryable;
 
+import com.example.JAVA_MES_API.api.dto.KafkaExecutionEvent;
 import com.example.JAVA_MES_API.api.dto.SignRequestDto;
 import com.example.JAVA_MES_API.api.dto.SpExecutionEvent;
 import com.example.JAVA_MES_API.api.dto.SpMappingDto;
 import com.example.JAVA_MES_API.api.service.SpQueueService;
+import com.example.JAVA_MES_API.kafka.service.KafkaQueueService;
+
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 
@@ -19,20 +23,20 @@ import lombok.RequiredArgsConstructor;
 
 @Component
 @RequiredArgsConstructor
-public class StoredProcedureQueueHandle {
+public class KafkaQueueHandle {
 
-	private final SpQueueService queueService;
+	private final KafkaQueueService kafkaQueueService;
 	
 	@Async
 	@EventListener
 	@Retryable(
 		    value = Exception.class,
-		    maxAttempts = 3,
+		    maxAttempts = 1,
 		    //backoff = @Backoff(delay = 300000) // 5분
-		    backoff = @Backoff(delay = 200) 
+		    backoff = @Backoff(delay = 200) // 5분
 		)
-	public void eventCallsp(SpExecutionEvent SpExecutionEvent)
+	public void eventSendMessage(KafkaExecutionEvent kafkaExecutionEvent)
 	{
-		queueService.callSP(SpExecutionEvent);
+		kafkaQueueService.sendKafkaMessage(kafkaExecutionEvent);
 	}
 }

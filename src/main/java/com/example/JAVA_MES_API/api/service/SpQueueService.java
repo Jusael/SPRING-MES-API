@@ -27,9 +27,9 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 @Service
-public class QueueService {
+public class SpQueueService {
 
-	private static final Logger log = LoggerFactory.getLogger(QueueService.class);
+	private static final Logger log = LoggerFactory.getLogger(SpQueueService.class);
 
 	private enum Status {
 		Ready, Fail, Success, ReTrySuccess,
@@ -43,7 +43,7 @@ public class QueueService {
 	private final QueueStatusService queueStatusService;
 	
 
-	public QueueService(SpExecutionQueueRepository spExecutionQueueRepository, SpMappingRepository spMappingRepository,
+	public SpQueueService(SpExecutionQueueRepository spExecutionQueueRepository, SpMappingRepository spMappingRepository,
 			ApplicationEventPublisher applicationEventPublisher
 			,QueueStatusService queueStatusService) {
 		this.spExecutionQueueRepository = spExecutionQueueRepository;
@@ -53,7 +53,7 @@ public class QueueService {
 	}
 
 	//
-	public void createAndPublish(Object dto) {
+	public long createAndPublish(Object dto) {
 
 		// 1. Que 삽입 및 QueId 발급
 		long queId = this.insertSpExecutionQueue(dto);
@@ -61,6 +61,7 @@ public class QueueService {
 		// 2. SP 실행 비동기 이벤트 처리
 		applicationEventPublisher.publishEvent(new SpExecutionEvent(dto, queId));
 
+		return queId;
 	}
 
 	private long insertSpExecutionQueue(Object paramDto) {
@@ -122,6 +123,7 @@ public class QueueService {
 				entityManager.createNativeQuery(excuteStr).executeUpdate();
 
 				spExecutionQueue.setStatus("SUCCESS");
+				
 
 			} catch (Exception e) {
 				spExecutionQueue.setStatus("FAIL");

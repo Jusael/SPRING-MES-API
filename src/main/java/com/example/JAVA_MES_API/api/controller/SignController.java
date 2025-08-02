@@ -45,7 +45,6 @@ public class SignController {
 	public PermissionResponseDto searchSignRoleInfo(SignRequestDto signRequestDto)
 	{
 		log.info(signRequestDto.getAppAlarmId());
-		log.info(signRequestDto.getSignId());
 		log.info(signRequestDto.getUserId());
 		log.info(signRequestDto.getSignCd());
 		

@@ -13,7 +13,7 @@ public class SignRequestDto {
 	private String signCd;
 
 	@Schema(description = "서명 ID", example = "1")
-	private String signId;
+	private int signId;
 
 	@Schema(description = "사용자 ID", example = "admin")
 	private String userId;

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTO Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="interFaceMapper">
+
+ <select id="IfOrder" 
+    parameterType="int"
+    resultType="com.example.JAVA_MES_API.api.dto.IfOrderDto">
+    
+    SELECT
+        c.order_no AS OrderNo,
+        c.item_name AS itemName,
+        c.item_code AS itemCode,
+        c.expiration_date AS expirationDate,
+        c.work_date AS workDate,
+        c.lot_no AS lotNo,
+        a.sign_emp_cd AS signEmpCd
+    FROM sign_record a
+    INNER JOIN kafka_mapping b ON b.kafka_cd = a.sign_cd
+    INNER JOIN work_order c ON c.order_no = a.key1
+    WHERE a.sign_id = #{signId}
+    
+    </select>
+
+
+	 <select id="IfPackingOrder" 
+    parameterType="int"
+    resultType="com.example.JAVA_MES_API.api.dto.IfPackingOrderDto">
+    
+    SELECT
+        c.packing_order_no AS packingOrderNo,
+        c.item_name AS itemName,
+        c.item_code AS itemCode,
+        c.expiration_date AS expirationDate,
+        c.work_date AS workDate,
+        c.lot_no AS lotNo,
+        a.sign_emp_cd AS signEmpCd
+    FROM sign_record a
+    INNER JOIN kafka_mapping b ON b.kafka_cd = a.sign_cd
+    INNER JOIN packing_order c ON c.packing_order_no = a.key1
+    WHERE a.sign_id = #{signId}
+    
+    </select>
+    
+</mapper>

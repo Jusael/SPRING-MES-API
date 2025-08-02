@@ -26,6 +26,8 @@ import com.example.JAVA_MES_API.api.exception.BusinessException;
 
 import com.example.JAVA_MES_API.api.repository.SignRecordRepository;
 import com.example.JAVA_MES_API.api.repository.UserRepository;
+import com.example.JAVA_MES_API.kafka.entity.KafkaExecutionQueue;
+import com.example.JAVA_MES_API.kafka.service.KafkaQueueService;
 import com.example.JAVA_MES_API.websocket.entity.FcmSavedEvent;
 import com.google.api.client.util.DateTime;
 
@@ -37,19 +39,22 @@ public class SignServiceImpl implements SignService {
 	private final SignRecordRepository signRecordRepository;
 	private final UserRepository userRepository;
 	private final ApplicationEventPublisher applicationEventPublisher;
-	private final QueueService queueService;
+	private final SpQueueService spQueueService;
 	private final SignDao signDao;
+	private final KafkaQueueService kafkaQueueService;
 	
 
 	@Autowired
 	public SignServiceImpl(SignRecordRepository signRecordRepository, UserRepository userRepository,
-			ApplicationEventPublisher applicationEventPublisher, QueueService queueService, SignDao signDao
+			ApplicationEventPublisher applicationEventPublisher, SpQueueService spQueueService, SignDao signDao
+			,KafkaQueueService kafkaQueueService
 			) {
 		this.signRecordRepository = signRecordRepository;
 		this.userRepository = userRepository;
 		this.applicationEventPublisher = applicationEventPublisher;
-		this.queueService = queueService;
+		this.spQueueService = spQueueService;
 		this.signDao = signDao;
+		this.kafkaQueueService = kafkaQueueService;
 		
 	}
 
@@ -68,7 +73,7 @@ public class SignServiceImpl implements SignService {
 	public PermissionResponseDto searchSignRoleInfo(SignRequestDto signRequestDto) {
 
 		SignRecord signRecord = signRecordRepository.findBySignIdAndSignCdAndSignDetailUserId(
-				Integer.parseInt(signRequestDto.getSignId()), signRequestDto.getSignCd(), signRequestDto.getUserId());
+				signRequestDto.getSignId(), signRequestDto.getSignCd(), signRequestDto.getUserId());
 
 		if (signRecord.getSignId() == null)
 			throw new BusinessException("Sign 조회 실패", "NOT FIND SIGN");
@@ -86,7 +91,7 @@ public class SignServiceImpl implements SignService {
 
 		byte[] signImage = user.getSignImage();
 
-		SignRecord signRecord = signRecordRepository.findById(Integer.parseInt(signRequestDto.getSignId()))
+		SignRecord signRecord = signRecordRepository.findById(signRequestDto.getSignId())
 				.orElseThrow(() -> new RuntimeException("Sign not found"));
 
 		signRecord.setSignImage(signImage);
@@ -95,9 +100,11 @@ public class SignServiceImpl implements SignService {
 
 		signRecordRepository.save(signRecord);
 
-		// NOTE : SP 비즈니스 로직 실행
+		// NOTE : SP Q 비즈니스 로직 실행
 		// 전자서명과 별개로 트랜잭션처리
-		queueService.createAndPublish(signRequestDto);
+		long spQueId = spQueueService.createAndPublish(signRequestDto);
+		kafkaQueueService.createAndPublish(signRequestDto, spQueId);
+		
 
 		SignResponseDto responseDto = new SignResponseDto();
 		responseDto.setSuccess(true);
