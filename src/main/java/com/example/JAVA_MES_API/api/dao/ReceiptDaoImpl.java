@@ -1,6 +1,7 @@
 package com.example.JAVA_MES_API.api.dao;
 
 import java.io.Console;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.session.SqlSession;
@@ -26,7 +27,7 @@ import com.example.JAVA_MES_API.api.exception.BusinessException;
 @Repository
 public class ReceiptDaoImpl implements ReceiptDao {
 
-	private static final Logger log = LoggerFactory.getLogger(SignDaoImpl.class);
+	private static final Logger log = LoggerFactory.getLogger(ReceiptDaoImpl.class);
 
 	@Autowired
 	private SqlSession sqlSession;
@@ -49,9 +50,9 @@ public class ReceiptDaoImpl implements ReceiptDao {
 	}
 
 	@Override
-	public InventoryResponeseDto searchInventoryList(BarcodeRequestDto requestDto) {
+	public  List<InventoryResponeseDto> searchInventoryList(BarcodeRequestDto requestDto) {
 
-		InventoryResponeseDto responeseDto =  sqlSession.selectOne(NAME_SPACE + "InventorySearchInfo", requestDto);
+		List<InventoryResponeseDto>  responeseDto =  sqlSession.selectList(NAME_SPACE + "InventorySearchInfo", requestDto);
 		
 		return responeseDto;
 	}

@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id 'org.springframework.boot' version '3.5.3'
+	id 'org.springframework.boot' version '3.2.4'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
 
@@ -18,11 +18,11 @@ repositories {
 }
 
 dependencies {
-	 implementation 'org.springframework.boot:spring-boot-starter-web'      // ✅ REST API
-    implementation 'org.springframework.boot:spring-boot-starter-data-jpa' // ✅ JPA
-    implementation 'mysql:mysql-connector-java:8.0.33'                     // ✅ MySQL
-    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3' // ✅ MyBatis
-    compileOnly 'org.projectlombok:lombok'                                  // ✅ Lombok
+	 implementation 'org.springframework.boot:spring-boot-starter-web'      
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa' 
+    implementation 'mysql:mysql-connector-java:8.0.33'                     
+    implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.3' 
+    compileOnly 'org.projectlombok:lombok'                                  
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
@@ -40,6 +40,7 @@ dependencies {
     implementation 'org.springframework.retry:spring-retry:2.0.5'
     implementation 'org.mapstruct:mapstruct:1.5.5.Final'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
 }
 
 tasks.named('test') {

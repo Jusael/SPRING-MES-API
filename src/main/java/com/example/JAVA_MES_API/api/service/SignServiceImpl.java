@@ -101,6 +101,9 @@ public class SignServiceImpl implements SignService {
 
 		SignResponseDto responseDto = new SignResponseDto();
 		responseDto.setSuccess(true);
+		responseDto.setSignDetailNm(signRecord.getSignDetailNm());
+		responseDto.setSignDetailUserId(signRecord.getSignDetailUserId());
+		responseDto.setSignSignEmpCd(signRecord.getSignEmpCd());
 
 		return responseDto;
 	}

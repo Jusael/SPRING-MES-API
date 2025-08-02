@@ -16,8 +16,12 @@ import com.example.JAVA_MES_API.api.dto.SignRequestDto;
 import com.example.JAVA_MES_API.api.dto.SignResponseDto;
 import com.example.JAVA_MES_API.api.service.SignService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/sign")
+@Tag(name = "전자서명 API", description = "전자서명 정보를 관리합니다.")
 public class SignController {
 
 	private static final Logger log = LoggerFactory.getLogger(SignController.class);
@@ -30,12 +34,14 @@ public class SignController {
 	}
 
 	@GetMapping("/get-search-sign-info")
+	@Operation(summary = "전자서명 조회", description = "전자서명 대상 정보를 조회합니다.")
 	public SignResponseDto searchSignInfo(SignRequestDto signRequestDto) {
 
 		return signService.searchSignInfo(signRequestDto);
 	}
 	
 	@GetMapping("get-user-sign-info")
+	@Operation(summary = "전자서명 권한 조회", description = "전자서명 권한을 조회합니다.")
 	public PermissionResponseDto searchSignRoleInfo(SignRequestDto signRequestDto)
 	{
 		log.info(signRequestDto.getAppAlarmId());
@@ -47,6 +53,7 @@ public class SignController {
 	}
 	
 	@PostMapping("/signIng")
+	@Operation(summary = "전자서명 진행", description = "전자서명을 진행합니다.")
 	public SignResponseDto updateSignResult(@RequestBody SignRequestDto signRequestDto)
 	{
 		return signService.updateSignResult(signRequestDto);

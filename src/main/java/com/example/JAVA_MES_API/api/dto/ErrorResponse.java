@@ -1,10 +1,17 @@
 package com.example.JAVA_MES_API.api.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 
-
+@Schema(description = "오류 응답 DTO")
 public class ErrorResponse {
+	
+	@Schema(description = "응답 여부", example = "false")
     private boolean success;
+	
+	@Schema(description = "메세지", example = "서버 오류 발생")
     private String message;
+	
+	@Schema(description = "오류 코드", example = "500")
     private String errorCode;
 
     public ErrorResponse(boolean success, String message, String errorCode) {

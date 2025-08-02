@@ -12,6 +12,7 @@ import com.example.JAVA_MES_API.api.dto.LoginResponseDto;
 import com.example.JAVA_MES_API.api.dto.SignRequestDto;
 import com.example.JAVA_MES_API.api.dto.SignResponseDto;
 
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -20,6 +21,8 @@ import org.apache.ibatis.annotations.Mapper;
 public interface ReceiptDao {
 
 	 ItemResponeseDto serachItemInfo(BarcodeRequestDto requestDto);
+	 
 	 LocationResponeDto searchLocationInfo(BarcodeRequestDto requestDto);
-	 InventoryResponeseDto searchInventoryList(BarcodeRequestDto requestDto);
+	 
+	 List<InventoryResponeseDto> searchInventoryList(BarcodeRequestDto requestDto);
 }

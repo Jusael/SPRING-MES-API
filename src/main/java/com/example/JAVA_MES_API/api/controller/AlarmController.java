@@ -17,8 +17,12 @@ import com.example.JAVA_MES_API.api.dto.AlarmsResponseDto;
 import com.example.JAVA_MES_API.api.dto.LoginResponseDto;
 import com.example.JAVA_MES_API.api.service.AlarmService;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("api/alarm")
+@Tag(name = "알람 API", description = "알람 관련 기능 제공")
 public class AlarmController {
 
 	private static final Logger log = LoggerFactory.getLogger(AlarmController.class);
@@ -30,27 +34,24 @@ public class AlarmController {
 	}
 
 	@GetMapping("/get-incoming-alarm-but-unread")
-	public ResponseEntity<List<AlarmsResponseDto>> searchUnReadAlarm(AlarmsRequestDto alarmsRequestDto){
+	@Operation(summary = "읽지 않은 알람 재전송", description = "FCM이 수신되지 않은 상황을 위한 알람 조회후 전송합니다.")
+	public ResponseEntity<List<AlarmsResponseDto>> searchUnReadAlarm(AlarmsRequestDto alarmsRequestDto) {
 
 		List<AlarmsResponseDto> list = alarmService.searchUnActionAlarm(alarmsRequestDto);
 
-		log.info("--======================================================");
-		log.info("앱 종료 후 알람 클릭시 누락 알람 리스트 조회 URL: /get-incoming-alarm-but-unread");
-		log.info(String.format("UserId: {%s}", alarmsRequestDto.getUserId()));
-		log.info("--======================================================");
-		
+		log.info(String.format("searchUnReadAlarm UserId: {%s}", alarmsRequestDto.getUserId()));
+
 		for (AlarmsResponseDto alarmsResponseDto : list) {
-			log.info(String.format("AppAlarmId :  {%s} UserId : {%s} ", alarmsResponseDto.getAppAlarmId(), alarmsResponseDto.getUserId()));	
+			log.info(String.format("AppAlarmId :  {%s} UserId : {%s} ", alarmsResponseDto.getAppAlarmId(),
+					alarmsResponseDto.getUserId()));
 		}
-		
-		
-		
+
 		return ResponseEntity.ok(list);
 	}
 
 	@PostMapping("/post-alarm-status-controll")
-	public void readOrDeleteAarm(@RequestBody AlarmsRequestDto alarmsRequestDto)
-	{
-		alarmService.readOrDeleteAarm(alarmsRequestDto);		
+	@Operation(summary = "알람에 대한 사용자 행위 기록", description = "FCM 알람을 읽거나 삭제할때 실행합니다.")
+	public void readOrDeleteAarm(@RequestBody AlarmsRequestDto alarmsRequestDto) {
+		alarmService.readOrDeleteAarm(alarmsRequestDto);
 	}
 }

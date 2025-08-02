@@ -29,7 +29,7 @@ SELECT	C.ITEM_NM					AS  itemNm
     
      <select id="InventorySearchInfo" 
     parameterType="com.example.JAVA_MES_API.api.dto.BarcodeRequestDto"
-    resultType="com.example.JAVA_MES_API.api.dto.InventoryResponeseDto.java">
+    resultType="com.example.JAVA_MES_API.api.dto.InventoryResponeseDto">
     
  SELECT	C.ITEM_NM					AS	itemNm		
 	,	C.ITEM_CD					AS	itemCd
