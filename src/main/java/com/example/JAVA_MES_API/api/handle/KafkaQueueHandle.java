@@ -33,7 +33,7 @@ public class KafkaQueueHandle {
 		    value = Exception.class,
 		    maxAttempts = 1,
 		    //backoff = @Backoff(delay = 300000) // 5분
-		    backoff = @Backoff(delay = 200) // 5분
+		    backoff = @Backoff(delay = 200) // 
 		)
 	public void eventSendMessage(KafkaExecutionEvent kafkaExecutionEvent)
 	{

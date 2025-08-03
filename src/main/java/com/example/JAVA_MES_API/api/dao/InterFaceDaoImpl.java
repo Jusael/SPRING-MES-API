@@ -9,11 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import com.example.JAVA_MES_API.api.dto.BarcodeRequestDto;
-import com.example.JAVA_MES_API.api.dto.IfOrderDto;
-import com.example.JAVA_MES_API.api.dto.IfPackingOrderDto;
 import com.example.JAVA_MES_API.api.dto.InventoryResponeseDto;
 import com.example.JAVA_MES_API.api.dto.ItemResponeseDto;
 import com.example.JAVA_MES_API.api.dto.LocationResponeDto;
+import com.example.JAVA_MES_API.kafka.dto.IfOrderDto;
+import com.example.JAVA_MES_API.kafka.dto.IfPackingOrderDto;
 
 
 @Repository

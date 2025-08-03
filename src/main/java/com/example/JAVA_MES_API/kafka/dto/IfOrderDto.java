@@ -1,4 +1,4 @@
-package com.example.JAVA_MES_API.api.dto;
+package com.example.JAVA_MES_API.kafka.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
@@ -6,11 +6,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
-@Schema(description = "서명된 포장지시 상세 DTO")
-public class IfPackingOrderDto {
+@Schema(description = "서명된 오더 상세 DTO")
+public class IfOrderDto {
 
-    @Schema(description = "포장 지시 번호")
-    private String packingOrderNo;
+    @Schema(description = "오더 번호")
+    private String orderNo;
 
     @Schema(description = "품목명")
     private String itemName;
@@ -19,10 +19,10 @@ public class IfPackingOrderDto {
     private String itemCode;
 
     @Schema(description = "유효기간")
-    private String expirationDate; // LocalDate로 바꿔도 OK
+    private String expirationDate; // 필요 시 LocalDate로 변경 가능
 
     @Schema(description = "작업일자")
-    private String workDate; // LocalDate로 바꿔도 OK
+    private String workDate; // 필요 시 LocalDate로 변경 가능
 
     @Schema(description = "롯트번호")
     private String lotNo;

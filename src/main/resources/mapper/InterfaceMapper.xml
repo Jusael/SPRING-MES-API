@@ -5,7 +5,7 @@
 
  <select id="IfOrder" 
     parameterType="int"
-    resultType="com.example.JAVA_MES_API.api.dto.IfOrderDto">
+    resultType="com.example.JAVA_MES_API.kafka.dto.IfOrderDto">
     
     SELECT
         c.order_no AS OrderNo,
@@ -25,7 +25,7 @@
 
 	 <select id="IfPackingOrder" 
     parameterType="int"
-    resultType="com.example.JAVA_MES_API.api.dto.IfPackingOrderDto">
+    resultType="com.example.JAVA_MES_API.kafka.dto.IfOrderDto">
     
     SELECT
         c.packing_order_no AS packingOrderNo,
