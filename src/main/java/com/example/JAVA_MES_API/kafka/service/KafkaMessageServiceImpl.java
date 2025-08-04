@@ -1,10 +1,10 @@
 package com.example.JAVA_MES_API.kafka.service;
-import lombok.RequiredArgsConstructor;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
 
 
 @Service
@@ -16,9 +16,9 @@ public class KafkaMessageServiceImpl implements KafkaMessageService {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Override
-    public boolean publish(String topic, String payload) {
+    public boolean publish(String topic, String queId, String payload) {
         try {
-            kafkaTemplate.send(topic, payload);
+            kafkaTemplate.send(topic,queId, payload);
             log.info("✅ Kafka 메시지 전송 성공");
             return true;
         } catch (Exception e) {

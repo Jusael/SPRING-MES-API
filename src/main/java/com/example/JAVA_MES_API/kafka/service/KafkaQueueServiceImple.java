@@ -1,37 +1,22 @@
 package com.example.JAVA_MES_API.kafka.service;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import com.example.JAVA_MES_API.api.dto.KafkaExecutionEvent;
 import com.example.JAVA_MES_API.api.dao.InterFaceDao;
-import com.example.JAVA_MES_API.api.dto.*;
-import com.example.JAVA_MES_API.kafka.*;
-import com.example.JAVA_MES_API.api.service.QueueStatusService;
+import com.example.JAVA_MES_API.api.dto.KafkaExecutionEvent;
+import com.example.JAVA_MES_API.api.dto.SignRequestDto;
+import com.example.JAVA_MES_API.kafka.entity.KafkaExecutionQueue;
+import com.example.JAVA_MES_API.kafka.entity.KafkaMapping;
 import com.example.JAVA_MES_API.kafka.repository.KafkaExecutionQueueRepository;
 import com.example.JAVA_MES_API.kafka.repository.KafkaMappingRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.example.JAVA_MES_API.kafka.entity.KafkaExecutionQueue;
-import com.example.JAVA_MES_API.kafka.entity.KafkaMapping;
-
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.criteria.CriteriaBuilder.Case;
 
 @Service
 public class KafkaQueueServiceImple implements KafkaQueueService {
@@ -81,16 +66,20 @@ public class KafkaQueueServiceImple implements KafkaQueueService {
 					.orElseThrow(() -> new IllegalArgumentException("SP Mapping not found for"));
 
 			kafkaExecutionQueue.setSpQueId(spQueId);
-			kafkaExecutionQueue.setTopic(signRequestDto.getSignCd().toLowerCase() + "topic");
-
+			
 			switch (signRequestDto.getSignCd()) {
 			case "WORK_ORDER":
+				
+				kafkaExecutionQueue.setTopic("order-approve-topic");
+				
 				dto = interFaceDao.searchOrderIfInfo(signRequestDto.getSignId());
 
 				break;
 
 			case "PACKING_ORDER":
 
+				kafkaExecutionQueue.setTopic("packing-approve-topic");
+				
 				dto = interFaceDao.searchPakcingOrderIfInfo(signRequestDto.getSignId());
 
 				break;
@@ -115,12 +104,12 @@ public class KafkaQueueServiceImple implements KafkaQueueService {
 		KafkaExecutionQueue queue = kafkaExecutionQueueRepository.findById(kafkaExecutionEvent.getQueId())
 				.orElseThrow(() -> new IllegalArgumentException("Not found QueInfo"));
 
-		boolean success = kafkaMessageService.publish(queue.getTopic(), queue.getPayload());
+		boolean success = kafkaMessageService.publish(queue.getTopic(), queue.getQueId().toString(), queue.getPayload());
 
 		if (success) {
-			queue.setStatus("SUCCESS");
+			queue.setStatus(Status.Success.name());
 		} else {
-			queue.setStatus("FAIL");
+			queue.setStatus(Status.Fail.name());
 			queue.setCnt(queue.getCnt() + 1);
 			queue.setErrorMsg("Kafka 전송 실패"); // 필요시 예외 메시지도 넘기도록 개선 가능
 		}

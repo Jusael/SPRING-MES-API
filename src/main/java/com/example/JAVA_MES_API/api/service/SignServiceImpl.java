@@ -2,10 +2,6 @@ package com.example.JAVA_MES_API.api.service;
 
 import java.time.LocalDateTime;
 
-import javax.management.RuntimeErrorException;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,20 +12,12 @@ import com.example.JAVA_MES_API.api.dao.SignDao;
 import com.example.JAVA_MES_API.api.dto.PermissionResponseDto;
 import com.example.JAVA_MES_API.api.dto.SignRequestDto;
 import com.example.JAVA_MES_API.api.dto.SignResponseDto;
-
-import com.example.JAVA_MES_API.api.dto.SpMappingDto;
-import com.example.JAVA_MES_API.api.dto.SpExecutionEvent;
-
 import com.example.JAVA_MES_API.api.entity.SignRecord;
 import com.example.JAVA_MES_API.api.entity.User;
 import com.example.JAVA_MES_API.api.exception.BusinessException;
-
 import com.example.JAVA_MES_API.api.repository.SignRecordRepository;
 import com.example.JAVA_MES_API.api.repository.UserRepository;
-import com.example.JAVA_MES_API.kafka.entity.KafkaExecutionQueue;
 import com.example.JAVA_MES_API.kafka.service.KafkaQueueService;
-import com.example.JAVA_MES_API.websocket.entity.FcmSavedEvent;
-import com.google.api.client.util.DateTime;
 
 @Service
 public class SignServiceImpl implements SignService {

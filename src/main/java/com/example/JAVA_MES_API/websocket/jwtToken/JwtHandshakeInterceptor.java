@@ -1,24 +1,13 @@
 package com.example.JAVA_MES_API.websocket.jwtToken;
 
-import java.security.PublicKey;
 import java.util.Map;
-import org.springframework.web.socket.WebSocketHandler;
-import org.springframework.web.socket.server.HandshakeInterceptor;
 
-import com.example.JAVA_MES_API.api.security.JwtTokenProvider;
-
-import org.hibernate.annotations.Comment;
-import org.hibernate.query.spi.QueryParameterBindingTypeResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
-import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.server.HandshakeInterceptor;
-
-import com.example.JAVA_MES_API.websocket.exception.WebSocketExceptionHandler;
-import com.example.JAVA_MES_API.websocket.jwtToken.WebJwtTokenProvider;
 
 public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 	

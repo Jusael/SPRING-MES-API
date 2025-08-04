@@ -1,7 +1,5 @@
 package com.example.JAVA_MES_API.api.service;
 
-import org.springframework.stereotype.Service;
-
 import com.example.JAVA_MES_API.api.dto.FcmRequestDto;
 import com.example.JAVA_MES_API.api.dto.FcmResponeseDto;
 import com.example.JAVA_MES_API.api.dto.JwtRequestDto;

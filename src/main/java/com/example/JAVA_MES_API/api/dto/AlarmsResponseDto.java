@@ -1,7 +1,6 @@
 package com.example.JAVA_MES_API.api.dto;
 
 import com.example.JAVA_MES_API.api.entity.Alarm;
-import com.example.JAVA_MES_API.api.entity.User;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -8,7 +8,6 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
-import com.example.JAVA_MES_API.api.security.JwtTokenProvider;
 import com.example.JAVA_MES_API.websocket.jwtToken.JwtHandshakeInterceptor;
 import com.example.JAVA_MES_API.websocket.jwtToken.WebJwtTokenProvider;
 

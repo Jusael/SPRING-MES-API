@@ -8,13 +8,13 @@
     resultType="com.example.JAVA_MES_API.kafka.dto.IfOrderDto">
     
     SELECT
-        c.order_no AS OrderNo,
-        c.item_name AS itemName,
-        c.item_code AS itemCode,
-        c.expiration_date AS expirationDate,
-        c.work_date AS workDate,
-        c.lot_no AS lotNo,
-        a.sign_emp_cd AS signEmpCd
+        c.ORDER_NO AS OrderNo,
+        c.ITEM_NAME AS itemName,
+        c.ITEM_CODE AS itemCode,
+        c.EXPIRATION_DATE AS expirationDate,
+        c.WORK_DATE AS workDate,
+        c.LOT_NO AS lotNo,
+        a.SIGN_EMP_CD AS signEmpCd
     FROM sign_record a
     INNER JOIN kafka_mapping b ON b.kafka_cd = a.sign_cd
     INNER JOIN work_order c ON c.order_no = a.key1
@@ -25,16 +25,16 @@
 
 	 <select id="IfPackingOrder" 
     parameterType="int"
-    resultType="com.example.JAVA_MES_API.kafka.dto.IfOrderDto">
+    resultType="com.example.JAVA_MES_API.kafka.dto.IfPackingOrderDto">
     
     SELECT
-        c.packing_order_no AS packingOrderNo,
-        c.item_name AS itemName,
-        c.item_code AS itemCode,
-        c.expiration_date AS expirationDate,
-        c.work_date AS workDate,
-        c.lot_no AS lotNo,
-        a.sign_emp_cd AS signEmpCd
+        c.PACKING_ORDER_NO AS packingOrderNo,
+        c.ITEM_NAME AS itemName,
+        c.ITEM_CODE AS itemCode,
+        c.EXPIRATION_DATE AS expirationDate,
+        c.WORK_DATE AS workDate,
+        c.LOT_NO AS lotNo,
+        a.SIGN_EMP_CD AS signEmpCd
     FROM sign_record a
     INNER JOIN kafka_mapping b ON b.kafka_cd = a.sign_cd
     INNER JOIN packing_order c ON c.packing_order_no = a.key1

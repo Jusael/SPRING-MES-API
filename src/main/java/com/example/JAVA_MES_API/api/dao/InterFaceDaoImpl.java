@@ -1,17 +1,11 @@
 package com.example.JAVA_MES_API.api.dao;
 
-import java.util.List;
-
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
-import com.example.JAVA_MES_API.api.dto.BarcodeRequestDto;
-import com.example.JAVA_MES_API.api.dto.InventoryResponeseDto;
-import com.example.JAVA_MES_API.api.dto.ItemResponeseDto;
-import com.example.JAVA_MES_API.api.dto.LocationResponeDto;
 import com.example.JAVA_MES_API.kafka.dto.IfOrderDto;
 import com.example.JAVA_MES_API.kafka.dto.IfPackingOrderDto;
 

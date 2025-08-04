@@ -11,10 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.JAVA_MES_API.api.dao.UserDaoImpl;
 import com.example.JAVA_MES_API.api.dto.AlarmsRequestDto;
 import com.example.JAVA_MES_API.api.dto.AlarmsResponseDto;
-import com.example.JAVA_MES_API.api.dto.LoginResponseDto;
 import com.example.JAVA_MES_API.api.service.AlarmService;
 
 import io.swagger.v3.oas.annotations.Operation;

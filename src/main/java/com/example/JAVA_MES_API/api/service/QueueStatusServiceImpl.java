@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
-
 import com.example.JAVA_MES_API.api.entity.SpExecutionQueue;
 import com.example.JAVA_MES_API.api.repository.SpExecutionQueueRepository;
 

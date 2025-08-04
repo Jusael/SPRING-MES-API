@@ -9,8 +9,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import com.example.JAVA_MES_API.api.dto.SignRequestDto;
 import com.example.JAVA_MES_API.api.dto.SpExecutionEvent;
@@ -18,11 +19,7 @@ import com.example.JAVA_MES_API.api.entity.SpExecutionQueue;
 import com.example.JAVA_MES_API.api.entity.SpMapping;
 import com.example.JAVA_MES_API.api.repository.SpExecutionQueueRepository;
 import com.example.JAVA_MES_API.api.repository.SpMappingRepository;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 

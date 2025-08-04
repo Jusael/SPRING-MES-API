@@ -1,10 +1,11 @@
 package com.example.JAVA_MES_API.kafka.repository;
 
-import com.example.JAVA_MES_API.kafka.entity.KafkaExecutionQueue;
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
+import com.example.JAVA_MES_API.kafka.entity.KafkaExecutionQueue;
 
 @Repository
 public interface KafkaExecutionQueueRepository extends JpaRepository<KafkaExecutionQueue, Long> {

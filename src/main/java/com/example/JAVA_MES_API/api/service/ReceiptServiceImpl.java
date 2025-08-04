@@ -13,12 +13,9 @@ import com.example.JAVA_MES_API.api.dto.LocationResponeDto;
 import com.example.JAVA_MES_API.api.dto.SuccessDto;
 import com.example.JAVA_MES_API.api.entity.Cell;
 import com.example.JAVA_MES_API.api.entity.ReceiptPack;
-import com.example.JAVA_MES_API.api.entity.ReceiptPackId;
 import com.example.JAVA_MES_API.api.exception.BusinessException;
 import com.example.JAVA_MES_API.api.repository.CellRepository;
 import com.example.JAVA_MES_API.api.repository.ReceiptPackRepository;
-
-import okhttp3.Response;
 
 @Service
 public class ReceiptServiceImpl implements ReceiptService{
