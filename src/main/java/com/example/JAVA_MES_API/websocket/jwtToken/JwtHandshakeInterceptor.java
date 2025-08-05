@@ -26,9 +26,6 @@ public class JwtHandshakeInterceptor implements HandshakeInterceptor {
 		String queryString = request.getURI().getQuery();
 		
 		log.info("Handshake 요청 URI: " + request.getURI());
-		
-
-		
 		log.info(queryString);
 
 		if (queryString != null && queryString.startsWith("token=")) {

@@ -1,36 +1,39 @@
 package com.example.JAVA_MES_API.websocket.service;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
-
 import com.example.JAVA_MES_API.api.entity.User;
 import com.example.JAVA_MES_API.websocket.dto.FcmPropertiesDto;
 import com.example.JAVA_MES_API.websocket.entity.AlarmWeb;
 import com.example.JAVA_MES_API.websocket.repository.FcmPushRepository;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.gson.Gson;
+import okhttp3.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
 
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class FcmServiceImpl implements FcmService {
-	
-	private static final Logger log = LoggerFactory.getLogger(FcmServiceImpl.class);
-	
+
+    private static final Logger log = LoggerFactory.getLogger(FcmServiceImpl.class);
+
+    private static final String FCM_URL_TEMPLATE = "https://fcm.googleapis.com/v1/projects/%s/messages:send";
+    private static final String FIREBASE_SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
+    private static final MediaType JSON_MEDIA_TYPE = MediaType.get("application/json; charset=utf-8");
+
     private final FcmPushRepository fcmPushRepository;
     private final FcmPropertiesDto fcmPropertiesDto;
     private final OkHttpClient client = new OkHttpClient();
     private final Gson gson = new Gson();
+
+    // AccessToken 캐싱용
+    private String cachedAccessToken;
+    private Instant accessTokenExpiry;
 
     public FcmServiceImpl(FcmPushRepository fcmPushRepository, FcmPropertiesDto fcmPropertiesDto) {
         this.fcmPushRepository = fcmPushRepository;
@@ -40,89 +43,106 @@ public class FcmServiceImpl implements FcmService {
     @Override
     public void pushNotification(AlarmWeb alarm) {
         try {
-            String userId = alarm.getUserId();
-
-            User userInfo = fcmPushRepository.findById(userId)
-                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-            String fcmToken = userInfo.getFcmToken();
+            String fcmToken = getFcmTokenForUser(alarm.getUserId());
             String accessToken = getAccessToken();
 
-            String fcmUrl = "https://fcm.googleapis.com/v1/projects/" 
-                    + fcmPropertiesDto.getProjectId() + "/messages:send";
+            String fcmUrl = String.format(FCM_URL_TEMPLATE, fcmPropertiesDto.getProjectId());
+            String jsonBody = createJson(alarm, fcmToken);
 
-            // 메시지 JSON 생성
-            String jsonBody =  createJson(alarm, fcmToken);
+            Request request = buildFcmRequest(fcmUrl, accessToken, jsonBody);
+            sendFcmRequest(request, alarm.getUserId());
 
-            Request request = new Request.Builder()
-                    .url(fcmUrl)
-                    .addHeader("Authorization", "Bearer " + accessToken)
-                    .addHeader("Content-Type", "application/json; UTF-8")
-                    .post(RequestBody.create(jsonBody, MediaType.get("application/json; charset=utf-8")))
-                    .build();
-
-            try (Response response = client.newCall(request).execute()) {
-                if (response.isSuccessful()) {
-                	log.info("FCM 발송 성공: " + response.body().string());
-                } else {
-                	log.info("FCM 발송 실패: " + response.code() + " - " + response.body().string());
-                }
-            }
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("FCM 발송 예외 발생 - userId: {}", alarm.getUserId(), e);
+            // TODO: 실패 큐 저장 로직 추가 가능
         }
     }
 
+    private String getFcmTokenForUser(String userId) {
+        return fcmPushRepository.findById(userId)
+                .map(User::getFcmToken)
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+    }
+
     private String getAccessToken() throws IOException {
+        // 캐시된 토큰이 유효하면 재사용
+        if (cachedAccessToken != null && accessTokenExpiry != null && Instant.now().isBefore(accessTokenExpiry)) {
+            return cachedAccessToken;
+        }
+
         GoogleCredentials googleCredentials = GoogleCredentials
                 .fromStream(new FileInputStream(fcmPropertiesDto.getServiceAccountPath()))
-                .createScoped(List.of("https://www.googleapis.com/auth/firebase.messaging"));
+                .createScoped(List.of(FIREBASE_SCOPE));
+
         googleCredentials.refreshIfExpired();
-        return googleCredentials.getAccessToken().getTokenValue();
+        cachedAccessToken = googleCredentials.getAccessToken().getTokenValue();
+        accessTokenExpiry = googleCredentials.getAccessToken().getExpirationTime().toInstant();
+
+        return cachedAccessToken;
     }
-    
-    
+
+    private Request buildFcmRequest(String url, String accessToken, String jsonBody) {
+        return new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", "Bearer " + accessToken)
+                .addHeader("Content-Type", "application/json; charset=UTF-8")
+                .post(RequestBody.create(jsonBody, JSON_MEDIA_TYPE))
+                .build();
+    }
+
+    private void sendFcmRequest(Request request, String userId) throws IOException {
+        try (Response response = client.newCall(request).execute()) {
+            String respBody = response.body() != null ? response.body().string() : "";
+
+            if (response.isSuccessful()) {
+                log.info("FCM 발송 성공 - userId: {}, 응답: {}", userId, respBody);
+            } else {
+                log.warn("FCM 발송 실패 - userId: {}, 상태: {}, 응답: {}", userId, response.code(), respBody);
+                // TODO: 실패 큐 저장 로직 추가 가능
+            }
+        }
+    }
+
     private String createJson(AlarmWeb alarm, String fcmToken) {
-        // 
         Map<String, String> notificationMap = Map.of(
-            "title", alarm.getTitle(),
-            "body", String.format("%s\n%s\n%s\n%s",
-                    alarm.getContent1() != null ? alarm.getContent1() : "",
-                    alarm.getContent2() != null ? alarm.getContent2() : "",
-                    alarm.getContent3() != null ? alarm.getContent3() : "",
-                    alarm.getUserNm() != null ? alarm.getUserNm() : ""
-            )
+                "title", alarm.getTitle(),
+                "body", String.format("%s\n%s\n%s\n%s",
+                        nullToEmpty(alarm.getContent1()),
+                        nullToEmpty(alarm.getContent2()),
+                        nullToEmpty(alarm.getContent3()),
+                        nullToEmpty(alarm.getUserNm()))
         );
 
-        // data (앱 내부 로직용 key-value)
         Map<String, String> dataMap = Map.ofEntries(
-            Map.entry("click_action", "FLUTTER_NOTIFICATION_CLICK"),
-            Map.entry("title", alarm.getTitle() != null ? alarm.getTitle() : ""),
-            Map.entry("content1", alarm.getContent1() != null ? alarm.getContent1() : ""),
-            Map.entry("content2", alarm.getContent2() != null ? alarm.getContent2() : ""),
-            Map.entry("content3", alarm.getContent3() != null ? alarm.getContent3() : ""),
-            Map.entry("content4", alarm.getContent4() != null ? alarm.getContent4() : ""),
-            Map.entry("content5", alarm.getContent5() != null ? alarm.getContent5() : ""),
-            Map.entry("appAlarmId", String.valueOf(alarm.getAppAlarmId())),
-            Map.entry("userId", alarm.getUserId() != null ? alarm.getUserId() : ""),
-            Map.entry("userNm", alarm.getUserNm() != null ? alarm.getUserNm() : ""),
-            Map.entry("signCd", alarm.getSignCd() != null ? alarm.getSignCd() : ""),
-            Map.entry("signId", alarm.getSignId() != null ? alarm.getSignId() : ""),
-            Map.entry("key1", alarm.getKey1() != null ? alarm.getKey1() : ""),
-            Map.entry("key2", alarm.getKey2() != null ? alarm.getKey2() : ""),
-            Map.entry("key3", alarm.getKey3() != null ? alarm.getKey3() : ""),
-            Map.entry("key4", alarm.getKey4() != null ? alarm.getKey4() : ""),
-            Map.entry("key5", alarm.getKey5() != null ? alarm.getKey5() : "")
+                Map.entry("click_action", "FLUTTER_NOTIFICATION_CLICK"),
+                Map.entry("title", nullToEmpty(alarm.getTitle())),
+                Map.entry("content1", nullToEmpty(alarm.getContent1())),
+                Map.entry("content2", nullToEmpty(alarm.getContent2())),
+                Map.entry("content3", nullToEmpty(alarm.getContent3())),
+                Map.entry("content4", nullToEmpty(alarm.getContent4())),
+                Map.entry("content5", nullToEmpty(alarm.getContent5())),
+                Map.entry("appAlarmId", String.valueOf(alarm.getAppAlarmId())),
+                Map.entry("userId", nullToEmpty(alarm.getUserId())),
+                Map.entry("userNm", nullToEmpty(alarm.getUserNm())),
+                Map.entry("signCd", nullToEmpty(alarm.getSignCd())),
+                Map.entry("signId", nullToEmpty(alarm.getSignId())),
+                Map.entry("key1", nullToEmpty(alarm.getKey1())),
+                Map.entry("key2", nullToEmpty(alarm.getKey2())),
+                Map.entry("key3", nullToEmpty(alarm.getKey3())),
+                Map.entry("key4", nullToEmpty(alarm.getKey4())),
+                Map.entry("key5", nullToEmpty(alarm.getKey5()))
         );
 
         Map<String, Object> messageMap = Map.of(
-            "token", fcmToken,
-            "notification", notificationMap,
-            "data", dataMap
+                "token", fcmToken,
+                "notification", notificationMap,
+                "data", dataMap
         );
 
-        Map<String, Object> bodyMap = Map.of("message", messageMap);
+        return gson.toJson(Map.of("message", messageMap));
+    }
 
-        return gson.toJson(bodyMap);
+    private String nullToEmpty(String value) {
+        return value != null ? value : "";
     }
 }

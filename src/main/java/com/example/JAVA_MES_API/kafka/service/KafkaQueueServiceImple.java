@@ -66,24 +66,26 @@ public class KafkaQueueServiceImple implements KafkaQueueService {
 					.orElseThrow(() -> new IllegalArgumentException("SP Mapping not found for"));
 
 			kafkaExecutionQueue.setSpQueId(spQueId);
-			
+
 			switch (signRequestDto.getSignCd()) {
 			case "WORK_ORDER":
-				
-				kafkaExecutionQueue.setTopic("order-approve-topic");
-				
+
+				kafkaExecutionQueue.setTopic(kafkaMapping.getTopic());
+
 				dto = interFaceDao.searchOrderIfInfo(signRequestDto.getSignId());
 
 				break;
 
 			case "PACKING_ORDER":
 
-				kafkaExecutionQueue.setTopic("packing-approve-topic");
-				
+				kafkaExecutionQueue.setTopic(kafkaMapping.getTopic());
+
 				dto = interFaceDao.searchPakcingOrderIfInfo(signRequestDto.getSignId());
 
 				break;
 
+			default:
+			    throw new IllegalArgumentException("Unsupported signCd: " + signRequestDto.getSignCd());
 			}
 		}
 
@@ -101,20 +103,26 @@ public class KafkaQueueServiceImple implements KafkaQueueService {
 	@Override
 	@Transactional
 	public void sendKafkaMessage(KafkaExecutionEvent kafkaExecutionEvent) {
+
 		KafkaExecutionQueue queue = kafkaExecutionQueueRepository.findById(kafkaExecutionEvent.getQueId())
 				.orElseThrow(() -> new IllegalArgumentException("Not found QueInfo"));
 
-		boolean success = kafkaMessageService.publish(queue.getTopic(), queue.getQueId().toString(), queue.getPayload());
+		try {
 
-		if (success) {
+			boolean success = kafkaMessageService.publish(queue.getTopic(), queue.getQueId().toString(),
+					queue.getPayload());
+
 			queue.setStatus(Status.Success.name());
-		} else {
+
+		} catch (Exception e) {
+
 			queue.setStatus(Status.Fail.name());
 			queue.setCnt(queue.getCnt() + 1);
-			queue.setErrorMsg("Kafka 전송 실패"); // 필요시 예외 메시지도 넘기도록 개선 가능
-		}
+			queue.setErrorMsg("Kafka 전송 실패");
 
-		kafkaExecutionQueueRepository.save(queue);
+		} finally {
+			kafkaExecutionQueueRepository.save(queue);
+		}
 	}
 
 	private String convertToJson(Object dto) {
