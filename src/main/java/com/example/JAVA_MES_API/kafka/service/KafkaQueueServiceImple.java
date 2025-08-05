@@ -118,7 +118,7 @@ public class KafkaQueueServiceImple implements KafkaQueueService {
 
 			queue.setStatus(Status.Fail.name());
 			queue.setCnt(queue.getCnt() + 1);
-			queue.setErrorMsg("Kafka 전송 실패");
+			queue.setErrorMsg(e.getMessage());
 
 		} finally {
 			kafkaExecutionQueueRepository.save(queue);
