@@ -35,7 +35,6 @@ Spring Boot 기반의 MES 백엔드 API입니다.
 | 알림 재전송 | POST | `/api/alarm/retry` |
 | Kafka 메시지 발송 | POST | `/api/kafka/send` |
 
-> 상세 API 문서는 `/swagger-ui/index.html`에서 확인 가능합니다.
 
 ---
 
