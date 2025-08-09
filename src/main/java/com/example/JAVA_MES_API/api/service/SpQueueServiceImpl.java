@@ -3,6 +3,7 @@ package com.example.JAVA_MES_API.api.service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -24,7 +25,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
 @Service
-public class SpQueueServiceImpl implements SpQueueService{
+public class SpQueueServiceImpl implements SpQueueService {
 
 	private static final Logger log = LoggerFactory.getLogger(SpQueueService.class);
 
@@ -38,11 +39,10 @@ public class SpQueueServiceImpl implements SpQueueService{
 	private final SpMappingRepository spMappingRepository;
 	private final ApplicationEventPublisher applicationEventPublisher;
 	private final QueueStatusService queueStatusService;
-	
 
-	public SpQueueServiceImpl(SpExecutionQueueRepository spExecutionQueueRepository, SpMappingRepository spMappingRepository,
-			ApplicationEventPublisher applicationEventPublisher
-			,QueueStatusService queueStatusService) {
+	public SpQueueServiceImpl(SpExecutionQueueRepository spExecutionQueueRepository,
+			SpMappingRepository spMappingRepository, ApplicationEventPublisher applicationEventPublisher,
+			QueueStatusService queueStatusService) {
 		this.spExecutionQueueRepository = spExecutionQueueRepository;
 		this.spMappingRepository = spMappingRepository;
 		this.applicationEventPublisher = applicationEventPublisher;
@@ -66,15 +66,6 @@ public class SpQueueServiceImpl implements SpQueueService{
 		SpExecutionQueue spExecutionQueue = new SpExecutionQueue();
 		Map<String, Object> parameter = new HashMap<>();
 
-		// SP_CD varchar(255)
-		// SP_SCHEMA varchar(50)
-		// SP_NAME varchar(128)
-		// EXEC_PARAMS text
-		// CNT tinyint
-		// STATUS varchar(20)
-		// ERROR_MSG text
-		// CREATED_AT datetime
-
 		if (paramDto instanceof SignRequestDto signRequestDto) {
 			SpMapping spMapping = spMappingRepository.findById(signRequestDto.getSignCd())
 					.orElseThrow(() -> new IllegalArgumentException("SP Mapping not found for"));
@@ -85,13 +76,13 @@ public class SpQueueServiceImpl implements SpQueueService{
 
 			parameter.put(spMapping.getSpCd().equals("WORK_ORDER") ? "ORDER_NO" : "PACKING_ORDER_NO",
 					signRequestDto.getKey1());
-			
+
 		}
 
 		// buildParameter
 		spExecutionQueue.setExecParams(this.buildParameter(parameter));
 		spExecutionQueue.setCnt(0);
-		spExecutionQueue.setStatus(Status.Ready.toString());
+		spExecutionQueue.setStatus(Status.Ready.name());
 		spExecutionQueue.setErrorMsg("");
 		spExecutionQueue.setCreatedAt(LocalDateTime.now());
 
@@ -113,28 +104,27 @@ public class SpQueueServiceImpl implements SpQueueService{
 		SpExecutionQueue spExecutionQueue = spExecutionQueueRepository.findById(spExecutionEvent.getQueId())
 				.orElseThrow(() -> new IllegalArgumentException("Not found QueInfo"));
 
-		if (!spExecutionQueue.getStatus().equals(Status.Success.toString()) && spExecutionQueue.getCnt() <= 3) {
+		String queStatus = spExecutionQueue.getStatus();
+
+		if (!List.of(Status.Success.name(), Status.ReTrySuccess.name()).contains(queStatus)
+				&& spExecutionQueue.getCnt() <= 3) {
+
 			try {
-				String excuteStr = "CALL" + " "  + spExecutionQueue.getSpName()
-						+ "(" + spExecutionQueue.getExecParams() + ")";
+				String excuteStr = "CALL" + " " + spExecutionQueue.getSpName() + "(" + spExecutionQueue.getExecParams()
+						+ ")";
 
 				entityManager.createNativeQuery(excuteStr).executeUpdate();
 
-				spExecutionQueue.setStatus("SUCCESS");
-				
+				spExecutionQueue.setStatus(
+						queStatus.equals(Status.Fail.name()) ? Status.ReTrySuccess.name() : Status.Success.name());
 
 			} catch (Exception e) {
-				spExecutionQueue.setStatus("FAIL");
+				spExecutionQueue.setStatus(Status.Fail.name());
 				spExecutionQueue.setErrorMsg(e.getMessage());
 				spExecutionQueue.setCnt(spExecutionQueue.getCnt() + 1);
-				
-				
-				log.error("TX ACTIVE: " + TransactionSynchronizationManager.isActualTransactionActive());
-				log.error(String.format("재시도 : %s / %s", spExecutionQueue.getCnt().toString(), e.getMessage()));
-				
 				throw e;
-			}
-			finally {
+				
+			} finally {
 				queueStatusService.UpdateQueStatus(spExecutionQueue);
 			}
 		}

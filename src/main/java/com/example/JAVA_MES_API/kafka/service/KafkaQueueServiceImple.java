@@ -1,6 +1,7 @@
 package com.example.JAVA_MES_API.kafka.service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,7 +86,7 @@ public class KafkaQueueServiceImple implements KafkaQueueService {
 				break;
 
 			default:
-			    throw new IllegalArgumentException("Unsupported signCd: " + signRequestDto.getSignCd());
+				throw new IllegalArgumentException("Unsupported signCd: " + signRequestDto.getSignCd());
 			}
 		}
 
@@ -107,21 +108,28 @@ public class KafkaQueueServiceImple implements KafkaQueueService {
 		KafkaExecutionQueue queue = kafkaExecutionQueueRepository.findById(kafkaExecutionEvent.getQueId())
 				.orElseThrow(() -> new IllegalArgumentException("Not found QueInfo"));
 
-		try {
+		String queStatus = queue.getStatus();
 
-			boolean success = kafkaMessageService.publish(queue.getTopic(), queue.getQueId().toString(),
-					queue.getPayload());
+		if (!List.of(Status.Success.name(), Status.ReTrySuccess.name()).contains(queStatus) && queue.getCnt() < 3) {
 
-			queue.setStatus(Status.Success.name());
+			try {
 
-		} catch (Exception e) {
+				boolean success = kafkaMessageService.publish(queue.getTopic(), queue.getQueId().toString(),
+						queue.getPayload());
 
-			queue.setStatus(Status.Fail.name());
-			queue.setCnt(queue.getCnt() + 1);
-			queue.setErrorMsg(e.getMessage());
+				queue.setStatus(queStatus.equals(Status.Fail.name()) ? Status.ReTrySuccess.name() : Status.Success.name());
 
-		} finally {
-			kafkaExecutionQueueRepository.save(queue);
+			} catch (Exception e) {
+
+				queue.setStatus(Status.Fail.name());
+				queue.setCnt(queue.getCnt() + 1);
+				queue.setErrorMsg(e.getMessage());
+				
+				throw e;
+
+			} finally {
+				kafkaExecutionQueueRepository.save(queue);
+			}
 		}
 	}
 
