@@ -6,7 +6,7 @@ Spring Boot 기반의 MES 백엔드 API입니다.
 ---
 
 ## 기술 스택
-- Spring Boot 3.2.x, Gradle  
+- Spring Boot 3.2, Gradle  
 - JPA + MyBatis  
 - MySQL + Stored Procedure  
 - WebSocket (Handshake 단계 JWT 검증)  
