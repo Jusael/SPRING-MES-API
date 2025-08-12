@@ -42,13 +42,17 @@ jobs:
       OWNER: ${{ github.repository_owner }}
       IMAGE_TAG: ${{ github.sha }}
     steps:
-      # 0) AWS 크레덴셜 구성 (Secrets 필요: AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_REGION)
+      # 0) AWS 크레덴셜 구성
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
+
+      # 🔹 AWS 자격증명 확인
+      - name: Verify AWS creds
+        run: aws sts get-caller-identity
 
       # 1) AWS CLI v2 설치
       - name: Install AWS CLI v2
@@ -59,21 +63,23 @@ jobs:
           sudo ./aws/install --update
           aws --version
 
-      # 2) 러너 공인 IP 조회 (한 번만)
+      # 2) 러너 공인 IP 조회
       - name: Get GitHub Actions public IP
         id: ip
         run: echo "ip=$(curl -s https://checkip.amazonaws.com)" >> $GITHUB_OUTPUT
 
-      # 3) 보안그룹 22 임시 오픈 (Secrets 필요: AWS_SECURITY_GROUP_ID)
+      # 3) 보안그룹 22 임시 오픈
       - name: Open SSH port temporarily
         run: |
           aws ec2 authorize-security-group-ingress \
             --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} \
             --protocol tcp \
             --port 22 \
-            --cidr ${{ steps.ip.outputs.ip }}/32
+            --cidr ${{ steps.ip.outputs.ip }}/32 \
+            --region ${{ secrets.AWS_REGION }} \
+          || echo "Rule already exists"
 
-      # 4) SSH로 배포 (외부 5999 → 컨테이너 80)
+      # 4) SSH로 배포
       - name: SSH deploy (External 5999 -> Container 80)
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -96,12 +102,13 @@ jobs:
             for i in {1..30}; do curl -fsS http://127.0.0.1:5999/ && ok=1 && break || sleep 2; done
             [ "$ok" = "1" ] || { echo "health failed"; docker logs app; exit 1; }
 
-      # 5) 항상 닫기 (성공/실패 무관)
+      # 5) 항상 닫기 (성공/실패 무관) + 멱등 처리
       - name: Close SSH port after deploy
         if: always()
         run: |
+          CIDR="${{ steps.ip.outputs.ip }}/32"
           aws ec2 revoke-security-group-ingress \
-            --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} \
-            --protocol tcp \
-            --port 22 \
-            --cidr ${{ steps.ip.outputs.ip }}/32
+            --group-id "${{ secrets.AWS_SECURITY_GROUP_ID }}" \
+            --protocol tcp --port 22 --cidr "${CIDR}" \
+            --region "${{ secrets.AWS_REGION }}" \
+          || echo "Rule not found (already closed)"
