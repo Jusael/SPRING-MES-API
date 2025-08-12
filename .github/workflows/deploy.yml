@@ -42,6 +42,21 @@ jobs:
       OWNER: ${{ github.repository_owner }}
       IMAGE_TAG: ${{ github.sha }}
     steps:
+      - name: Install AWS CLI
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y awscli
+
+      - name: Open SSH port temporarily
+        run: |
+          MY_IP=$(curl -s https://checkip.amazonaws.com)
+          aws ec2 authorize-security-group-ingress \
+            --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${MY_IP}/32 \
+            --region ${{ secrets.AWS_REGION }}
+
       - name: SSH deploy (External 5999 -> Container 80)
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -63,3 +78,14 @@ jobs:
 
             for i in {1..30}; do curl -fsS http://127.0.0.1:5999/ && ok=1 && break || sleep 2; done
             [ "$ok" = "1" ] || { echo "health failed"; docker logs app; exit 1; }
+
+      - name: Close SSH port after deploy
+        if: always()
+        run: |
+          MY_IP=$(curl -s https://checkip.amazonaws.com)
+          aws ec2 revoke-security-group-ingress \
+            --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} \
+            --protocol tcp \
+            --port 22 \
+            --cidr ${MY_IP}/32 \
+            --region ${{ secrets.AWS_REGION }}
