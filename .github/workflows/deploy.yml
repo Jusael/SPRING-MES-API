@@ -42,7 +42,7 @@ jobs:
       OWNER: ${{ github.repository_owner }}
       IMAGE_TAG: ${{ github.sha }}
     steps:
-      - name: SSH deploy (HTTP 80 -> 5999)
+      - name: SSH deploy (External 5999 -> Container 80)
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
