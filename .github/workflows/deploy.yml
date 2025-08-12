@@ -37,78 +37,30 @@ jobs:
 
   deploy:
     needs: build-and-push
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, ec2-prod]   # ← 방금 붙인 라벨
     env:
       OWNER: ${{ github.repository_owner }}
       IMAGE_TAG: ${{ github.sha }}
     steps:
-      # 0) AWS 크레덴셜 구성
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to GHCR (on EC2)
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      # 🔹 AWS 자격증명 확인
-      - name: Verify AWS creds
-        run: aws sts get-caller-identity
-
-      # 1) AWS CLI v2 설치
-      - name: Install AWS CLI v2
+      - name: Pull & Run container
         run: |
-          curl -sL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o awscliv2.zip
-          sudo apt-get update && sudo apt-get install -y unzip
-          unzip -q awscliv2.zip
-          sudo ./aws/install --update
-          aws --version
+          set -e
+          OWNER_LC="${OWNER,,}"
+          IMAGE="ghcr.io/${OWNER_LC}/myapp:${IMAGE_TAG}"
 
-      # 2) 러너 공인 IP 조회
-      - name: Get GitHub Actions public IP
-        id: ip
-        run: echo "ip=$(curl -s https://checkip.amazonaws.com)" >> $GITHUB_OUTPUT
+          docker rm -f app || true
+          docker pull "$IMAGE"
+          docker run -d --name app --restart=always \
+            --env-file /home/ubuntu/app/.env \   # ← 경로 맞게
+            -p 5999:80 \
+            "$IMAGE"
 
-      # 3) 보안그룹 22 임시 오픈
-      - name: Open SSH port temporarily
+      - name: Health check
         run: |
-          aws ec2 authorize-security-group-ingress \
-            --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} \
-            --protocol tcp \
-            --port 22 \
-            --cidr ${{ steps.ip.outputs.ip }}/32 \
-            --region ${{ secrets.AWS_REGION }} \
-          || echo "Rule already exists"
-
-      # 4) SSH로 배포
-      - name: SSH deploy (External 5999 -> Container 80)
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            set -e
-            OWNER_LC="${OWNER,,}"
-            IMAGE="ghcr.io/${OWNER_LC}/myapp:${IMAGE_TAG}"
-            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-            docker rm -f app || true
-            docker pull "$IMAGE"
-            docker run -d --name app --restart=always \
-              --env-file /home/ubuntu/app/.env \
-              -p 5999:80 \
-              "$IMAGE"
-
-            for i in {1..30}; do curl -fsS http://127.0.0.1:5999/ && ok=1 && break || sleep 2; done
-            [ "$ok" = "1" ] || { echo "health failed"; docker logs app; exit 1; }
-
-      # 5) 항상 닫기 (성공/실패 무관) + 멱등 처리
-      - name: Close SSH port after deploy
-        if: always()
-        run: |
-          CIDR="${{ steps.ip.outputs.ip }}/32"
-          aws ec2 revoke-security-group-ingress \
-            --group-id "${{ secrets.AWS_SECURITY_GROUP_ID }}" \
-            --protocol tcp --port 22 --cidr "${CIDR}" \
-            --region "${{ secrets.AWS_REGION }}" \
-          || echo "Rule not found (already closed)"
+          for i in {1..30}; do
+            curl -fsS http://127.0.0.1:5999/ && ok=1 && break || sleep 2
+          done
+          [ "$ok" = "1" ] || { echo "health failed"; docker logs app; exit 1; }
