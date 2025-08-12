@@ -58,7 +58,7 @@ jobs:
             docker pull "$IMAGE"
             docker run -d --name app --restart=always \
               --env-file /home/ubuntu/app/.env \
-              -p 127.0.0.1:5999:5999 \
+              -p 5999:5999 \
               "$IMAGE"
 
             for i in {1..30}; do curl -fsS http://127.0.0.1:5999/ && ok=1 && break || sleep 2; done
