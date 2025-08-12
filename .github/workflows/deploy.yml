@@ -7,26 +7,40 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    env:
+      OWNER: ${{ github.repository_owner }}
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
+
       - name: Build (Gradle)
         run: |
           chmod +x ./gradlew
           ./gradlew clean build -x test
+
       - name: Login to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
       - name: Build image
-        run: docker build -t ghcr.io/${{ github.repository_owner,, }}/myapp:${{ github.sha }} .
+        run: |
+          OWNER_LC="${OWNER,,}"
+          docker build -t ghcr.io/${OWNER_LC}/myapp:${GITHUB_SHA} .
+
       - name: Push image
-        run: docker push ghcr.io/${{ github.repository_owner }}/myapp:${{ github.sha }}
+        run: |
+          OWNER_LC="${OWNER,,}"
+          docker push ghcr.io/${OWNER_LC}/myapp:${GITHUB_SHA}
 
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
+    env:
+      OWNER: ${{ github.repository_owner }}
+      IMAGE_TAG: ${{ github.sha }}
     steps:
       - name: SSH deploy (HTTP 80 -> 5999)
         uses: appleboy/ssh-action@v1.0.3
@@ -36,11 +50,16 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            IMAGE="ghcr.io/${{ github.repository_owner,, }}/myapp:${{ github.sha }}"
+            OWNER_LC="${OWNER,,}"
+            IMAGE="ghcr.io/${OWNER_LC}/myapp:${IMAGE_TAG}"
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
             docker rm -f app || true
-            docker pull $IMAGE
+            docker pull "$IMAGE"
             docker run -d --name app --restart=always \
               --env-file /home/ubuntu/app/.env \
               -p 127.0.0.1:5999:5999 \
-              $IMAGE
+              "$IMAGE"
+
+            for i in {1..30}; do curl -fsS http://127.0.0.1:5999/ && ok=1 && break || sleep 2; done
+            [ "$ok" = "1" ] || { echo "health failed"; docker logs app; exit 1; }
