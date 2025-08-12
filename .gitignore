@@ -18,6 +18,16 @@ bin/
 !**/src/test/**/bin/
 *.yml
 *.json
+.env
+app/.env
+*.pem
+*.key
+/build/
+target/
+out/
+.idea/
+*.iml
+*.class
 
 ### IntelliJ IDEA ###
 .idea
