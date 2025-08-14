@@ -3,15 +3,14 @@ server:
 
 spring:
   datasource:
-    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/mydb
-    username: ${DB_USER}
-    password: ${DB_PASS}
-    driver-class-name: com.mysql.cj.jdbc.Driver
-
+    url: "jdbc:mysql://${DB_HOST}:${DB_PORT}/mydb"
+    username: "${DB_USER}"
+    password: "${DB_PASS}"
+    driver-class-name: "com.mysql.cj.jdbc.Driver"
 
 mybatis:
-  type-aliases-package: com.example.JAVA_MES_API.dto
-  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: "com.example.JAVA_MES_API.dto"
+  mapper-locations: "classpath:mapper/**/*.xml"
   configuration:
     map-underscore-to-camel-case: true  # DB 컬럼명 → CamelCase 매핑
 
@@ -29,15 +28,15 @@ jpa:
       format_sql: true
 
 jwt:
-  secret: ${JWT_SECRET}
+  secret: "${JWT_SECRET}"  # 🔐 환경변수에서 가져오게 따옴표 추가
 
 fcm:
-  project-id: mesfirebase-8169a
-  service-account-path: src/main/resources/mesfirebase-8169a-20ed10ada5de.json
+  project-id: "mesfirebase-8169a"
+  service-account-path: "src/main/resources/mesfirebase-8169a-20ed10ada5de.json"
 
 springdoc:
   api-docs:
-    path: /v3/api-docs
+    path: "/v3/api-docs"
   swagger-ui:
-    path: /swagger-ui.html
+    path: "/swagger-ui.html"
     operationsSorter: method
