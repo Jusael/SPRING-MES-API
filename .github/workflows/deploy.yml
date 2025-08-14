@@ -4,14 +4,13 @@ on:
   push:
     branches: [ "main" ]
 
-# GHCR 푸시/풀 + OIDC 토큰 발급 권한
 permissions:
   contents: read
   packages: write
   id-token: write
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
     env:
       OWNER: ${{ github.repository_owner }}
@@ -31,49 +30,53 @@ jobs:
       - name: Login to GHCR
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-      - name: Build image
+      - name: Build Docker image
         run: |
           OWNER_LC="${OWNER,,}"
           docker build -t ghcr.io/${OWNER_LC}/myapp:${GITHUB_SHA} .
 
-      - name: Push image
+      - name: Push Docker image
         run: |
           OWNER_LC="${OWNER,,}"
           docker push ghcr.io/${OWNER_LC}/myapp:${GITHUB_SHA}
 
-  deploy:
-    needs: build-and-push
-    runs-on: [self-hosted, ec2-prod]
-    env:
-      OWNER: ${{ github.repository_owner }}
-      IMAGE_TAG: ${{ github.sha }}
-    steps:
-      # ▶ OIDC로 AWS 임시자격 구성 (필요시 AWS CLI 호출 가능)
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Login to GHCR (on EC2)
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-
-      - name: Pull & Run container
+      - name: Open port 22 temporarily
         run: |
-          set -e
-          OWNER_LC="${OWNER,,}"
-          IMAGE="ghcr.io/${OWNER_LC}/myapp:${IMAGE_TAG}"
+          aws ec2 authorize-security-group-ingress \
+            --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} \
+            --protocol tcp --port 22 --cidr 0.0.0.0/0 || true
 
-          docker rm -f app || true
-          docker pull "$IMAGE"
-          docker run -d --name app --restart=always \
-            --env-file /home/ubuntu/app/.env \
-            -p 5999:5999 \
-            "$IMAGE"
+      - name: SSH Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            set -e
+            OWNER_LC="${{ env.OWNER,, }}"
+            IMAGE="ghcr.io/${OWNER_LC}/myapp:${{ github.sha }}"
 
-      - name: Health check
+            echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker rm -f app || true
+            docker pull "$IMAGE"
+            docker run -d --name app --restart=always \
+              --env-file /home/ubuntu/app/.env \
+              -p 5999:5999 \
+              "$IMAGE"
+
+            for i in {1..30}; do curl -fsS http://127.0.0.1:5999/ && ok=1 && break || sleep 2; done
+            [ "$ok" = "1" ] || { echo "health failed"; docker logs app; exit 1; }
+
+      - name: Close port 22
+        if: always()
         run: |
-          for i in {1..30}; do
-            curl -fsS http://127.0.0.1:5999/ && ok=1 && break || sleep 2
-          done
-          [ "$ok" = "1" ] || { echo "health failed"; docker logs app; exit 1; }
+          aws ec2 revoke-security-group-ingress \
+            --group-id ${{ secrets.AWS_SECURITY_GROUP_ID }} \
+            --protocol tcp --port 22 --cidr 0.0.0.0/0 || true
