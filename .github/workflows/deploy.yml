@@ -32,12 +32,12 @@ jobs:
 
       - name: Build Docker image
         run: |
-          OWNER_LC="${OWNER,,}"
+          OWNER_LC=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
           docker build -t ghcr.io/${OWNER_LC}/myapp:${GITHUB_SHA} .
 
       - name: Push Docker image
         run: |
-          OWNER_LC="${OWNER,,}"
+          OWNER_LC=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
           docker push ghcr.io/${OWNER_LC}/myapp:${GITHUB_SHA}
 
       - name: Configure AWS credentials (OIDC)
@@ -60,7 +60,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             set -e
-            OWNER_LC="${{ env.OWNER,, }}"
+            OWNER_LC=$(echo "${{ env.OWNER }}" | tr '[:upper:]' '[:lower:]')
             IMAGE="ghcr.io/${OWNER_LC}/myapp:${{ github.sha }}"
 
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
@@ -71,7 +71,9 @@ jobs:
               -p 5999:5999 \
               "$IMAGE"
 
-            for i in {1..30}; do curl -fsS http://127.0.0.1:5999/ && ok=1 && break || sleep 2; done
+            for i in {1..30}; do
+              curl -fsS http://127.0.0.1:5999/ && ok=1 && break || sleep 2
+            done
             [ "$ok" = "1" ] || { echo "health failed"; docker logs app; exit 1; }
 
       - name: Close port 22
