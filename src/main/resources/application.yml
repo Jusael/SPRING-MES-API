@@ -1,3 +1,5 @@
+spring.config.import: optional:file:.env
+
 server:
   port: 5999  # 서버 포트
 
