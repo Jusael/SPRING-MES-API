@@ -1,6 +1,6 @@
 # MES API (Spring Boot) 
   
-Spring Boot 기반의 MES 백엔드 API입니다.    
+Spring Boot 기반의 MES 백엔드 API입니다.     
 실시간 알림(WebSocket), 재처리 큐(SP Queue, Kafka Queue), JWT 인증 등 현장 중심 기능을 포함하고 있습니다. 
 
 ---
