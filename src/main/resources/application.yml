@@ -9,6 +9,8 @@ spring:
     username: "${DB_USER}"
     password: "${DB_PASS}"
     driver-class-name: "com.mysql.cj.jdbc.Driver"
+  kafka:
+    bootstrap-servers: kafka:9092
 
 mybatis:
   type-aliases-package: "com.example.JAVA_MES_API.dto"
