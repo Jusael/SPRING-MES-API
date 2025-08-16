@@ -11,4 +11,4 @@ COPY --from=build /app/build/libs/*.jar app.jar
 
 COPY src/main/resources/application.yml /app/application.yml
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar --spring.config.location=file:/app/application.yml"]
+ENTRYPOINT ["java", "-jar", "app.jar", "--spring.config.location=file:/app/application.yml"]
