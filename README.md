@@ -1,20 +1,20 @@
 # MES API (Spring Boot) 
-  
-Spring Boot 기반의 MES 백엔드 API입니다.    
+    
+Spring Boot 기반의 MES 백엔드 API입니다.     
 실시간 알림(WebSocket), 재처리 큐(SP Queue, Kafka Queue), JWT 인증 등 현장 중심 기능을 포함하고 있습니다. 
 
 ---
-
+ 
 ## 기술 스택
-- Spring Boot 3.2,  Gradle     
+- Spring Boot 3.2,  Gradle      
 - JPA + MyBatis  
-- MySQL + Stored Procedure   
+- MySQL + Stored Procedure     
 - WebSocket (Handshake 단계 JWT 검증)  
-- Kafka (Producer) + DLQ(이력  관리)  
+- Kafka (Producer) + DLQ(이력  관리)   
 - Swagger / springdoc-openapi
 
----
-
+--- 
+ 
 ## 주요 모듈
 - **Auth**: JWT 발급 및 검증
 - **Alarm**: 알림 수신, 저장, WebSocket 전송
