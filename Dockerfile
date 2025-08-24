@@ -1,4 +1,4 @@
-# 1단계: 빌드용 컨테이너
+# 1단계: 빌드용 컨테이너 해당 파일이 이미지화
 FROM eclipse-temurin:21-jdk AS build
 WORKDIR /app
 
